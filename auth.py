@@ -45,3 +45,26 @@ def login(username_or_email, password):
     if row and bcrypt.checkpw(password.encode('utf-8'), row[0].encode('utf-8')):
         return True, "Login successful."
     return False, "Invalid username/email or password."
+
+def forgotpassword(register_email, new_password):
+    conn = get_connection()
+    cur = conn.cursor()
+    newhashed = bcrypt.hashpw(new_password.encode('utf-8'), bcrypt.gensalt())
+
+    try:
+        cur.execute("SELECT email FROM residents WHERE email = %s", (register_email,))
+        c_email = cur.fetchone()
+
+        if c_email:
+            cur.execute("UPDATE residents SET password = %s WHERE email = %s",(newhashed.decode('utf-8'), register_email))
+            conn.commit()
+            return True, "Password reset successfully."
+        else:
+            return False, "Email not found."
+
+    except Exception as error:
+        return False, f"Error: {error}"
+
+    finally:
+        cur.close()
+        conn.close()
