@@ -179,6 +179,6 @@ def do_login(log_user, log_pass):
 
     ok, msg = login(log_user, log_pass)
     if ok:
-        messagebox.showinfo("Login", msg)
+        messagebox.showinfo("Logaqsdasdin", msg)
     else:
         messagebox.showerror("Login", msg)
