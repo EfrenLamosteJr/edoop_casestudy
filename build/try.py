@@ -7,7 +7,7 @@ def do_signup():
     if ok:
         messagebox.showinfo("Sign-Up", msg)
     else:
-        messagebox.showerror("Sign-Up", msg)
+        messagebox.showerror("Sign-Usdfsdfsdffp", msg)
 
 def do_login():
     ok, msg = login(entry_user.get(), entry_pass.get())
