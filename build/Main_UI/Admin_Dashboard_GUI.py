@@ -141,5 +141,30 @@ def start_admin_dashboard():
     root.mainloop()
 
 # --- To run the application ---
+
+
+
+#TANGINAMO
+#TANGINAMO
+
+#TANGINAMO
+
+#TANGINAMO
+
+#TANGINAMO
+
+#TANGINAMO
+
+#TANGINAMO
+
+#TANGINAMO
+
+#TANGINAMO
+
+#TANGINAMO
+
+#TANGINAMO
+#TANGINAMO
+
 if __name__ == "__main__":
     start_admin_dashboard()
