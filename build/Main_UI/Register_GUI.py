@@ -35,7 +35,7 @@ def start_signup1():
 
     try:
         logo_img = tk.PhotoImage(
-            file=r"C:\Users\Bryan\Downloads\PythonProject-20251015T135346Z-1-001\PythonProject\build\Image_Resources\P2SERVE_LOGO.png")
+            file=r"C:\Users\EfrenLamostejr\Documents\Study\Oop\build\Image_Resources\P2SERVE_LOGO.png")
         logo_lbl = tk.Label(left_frame, image=logo_img, bg="#3498db")
         logo_lbl.image = logo_img
         logo_lbl.place(relx=0.5, rely=0.5, anchor="center")
@@ -91,9 +91,9 @@ def start_signup1():
     password_entry.configure(show="*")
 
     view_img = tk.PhotoImage(
-        file=r"C:\Users\Bryan\Downloads\PythonProject-20251015T135346Z-1-001\PythonProject\build\Image_Resources\view.png")
+        file=r"C:\Users\EfrenLamostejr\Documents\Study\Oop\build\Image_Resources\view.png")
     hide_img = tk.PhotoImage(
-        file=r"C:\Users\Bryan\Downloads\PythonProject-20251015T135346Z-1-001\PythonProject\build\Image_Resources\hide.png")
+        file=r"C:\Users\EfrenLamostejr\Documents\Study\Oop\build\Image_Resources\hide.png")
     eye_label_password = tk.Label(row4, image=view_img, bg="white", cursor="hand2")
     eye_label_password.place(in_=password_entry, relx=1.0, x=-2, rely=0.5, anchor="e")
 

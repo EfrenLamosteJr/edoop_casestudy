@@ -60,9 +60,9 @@ def start_resetpass():
     new_pass_entry.pack(padx=10, pady=(0, 15))
 
     view_img = tk.PhotoImage(
-        file=r"C:\Users\Bryan\Downloads\PythonProject-20251015T135346Z-1-001\PythonProject\build\Image_Resources\view.png")
+        file=r"C:\Users\EfrenLamostejr\Documents\Study\Oop\build\Image_Resources\view.png")
     hide_img = tk.PhotoImage(
-        file=r"C:\Users\Bryan\Downloads\PythonProject-20251015T135346Z-1-001\PythonProject\build\Image_Resources\hide.png")
+        file=r"C:\Users\EfrenLamostejr\Documents\Study\Oop\build\Image_Resources\hide.png")
     eye_label_new_pass = tk.Label(entry_column, image=view_img, bg="white", cursor="hand2")
     eye_label_new_pass.place(in_=new_pass_entry, relx=1.0, x=-2, rely=0.5, anchor="e")
 
@@ -154,7 +154,7 @@ def start_resetpass():
 
     try:
         logo_img = tk.PhotoImage(
-            file=r"C:\Users\Bryan\Downloads\PythonProject-20251015T135346Z-1-001\PythonProject\build\Image_Resources\P2SERVE_LOGO.png")
+            file=r"C:\Users\EfrenLamostejr\Documents\Study\Oop\build\Image_Resources\P2SERVE_LOGO.png")
         resized_logo_img = logo_img.subsample(2, 2)
         logo_lbl = tk.Label(image_column, image=resized_logo_img, bg="#3498db")
         logo_lbl.image = resized_logo_img

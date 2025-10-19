@@ -7,35 +7,41 @@ import random
 import smtplib
 from email.message import EmailMessage
 from auth import signup
-from auth import forgotpassword
 
+def start_otppage(firstname, lastname, username, co_number, email, b_address, password):
 
-def start_otpForgotpage(email, new_password):
     # --- App Configuration ---
     ctk.set_appearance_mode("light")
     ctk.set_default_color_theme("blue")
 
     # --- Root Window ---
     root = ctk.CTk()
-    # --- MODIFICATION: Set the title for the standard window bar ---
     root.title("OTP Verification")
-
     root.geometry("400x300")
     root.resizable(False, False)
 
-    # --- MODIFICATION: Removed root.overrideredirect(True) ---
+    # Remove default title bar
+    root.overrideredirect(True)
 
-    # --- Centering ---
+    # --- Close Window Function ---
+    def close_window():
+        root.quit()
+        root.destroy()
+
+    # --- Centering and Topmost Fix ---
     root.update_idletasks()
     width = root.winfo_width()
     height = root.winfo_height()
+
+    # Calculate center position
     screen_width = root.winfo_screenwidth()
     screen_height = root.winfo_screenheight()
     x = (screen_width // 2) - (width // 2)
     y = (screen_height // 2) - (height // 2)
-    root.geometry(f'{width}x{height}+{x}+{y}')
 
-    # --- MODIFICATION: Removed root.attributes('-topmost', True) ---
+    # Set geometry to center the window
+    root.geometry(f'{width}x{height}+{x}+{y}')
+    root.attributes('-topmost', True)
 
     # --- OTP Storage ---
     generated_otp = None
@@ -64,6 +70,7 @@ def start_otpForgotpage(email, new_password):
             msg['From'] = from_email
             msg['To'] = to_mail
             msg.set_content("Your OTP is: " + generated_otp)
+
             msg.add_alternative(html_content, subtype='html')
 
             server.send_message(msg)
@@ -73,8 +80,7 @@ def start_otpForgotpage(email, new_password):
             messagebox.showinfo("OTP Sent", "Check your email for the 6-digit code!")
         except smtplib.SMTPAuthenticationError as e:
             print(f"SMTP Authentication Error: {e}")
-            messagebox.showerror("Email Error",
-                                 "Failed to send OTP. Check email settings and try again.\nError: Please log in with your web browser. Ensure 2-Step Verification is enabled and use a valid App Password.")
+            messagebox.showerror("Email Error", "Failed to send OTP. Please check your email settings and try again.\nError: Please log in with your web browser (https://support.google.com/mail/?p=WebLoginRequired). Ensure 2-Step Verification is enabled and use a valid App Password.")
         except Exception as e:
             print(f"Email sending error: {e}")
             messagebox.showerror("Email Error", f"Failed to send OTP: {str(e)}")
@@ -104,8 +110,7 @@ def start_otpForgotpage(email, new_password):
     otp_entries = []
     for i in range(6):
         var = tk.StringVar()
-        entry = ctk.CTkEntry(otp_frame, width=40, height=40, justify="center", textvariable=var,
-                             font=ctk.CTkFont(size=16))
+        entry = ctk.CTkEntry(otp_frame, width=40, height=40, justify="center", textvariable=var, font=ctk.CTkFont(size=16))
         entry.grid(row=0, column=i, padx=5)
         otp_vars.append(var)
         otp_entries.append(entry)
@@ -130,8 +135,7 @@ def start_otpForgotpage(email, new_password):
             var.set("")
         otp_entries[0].focus()
 
-    resend_btn = ctk.CTkButton(frame, text="Resend OTP", width=120, command=resend_otp, fg_color="transparent",
-                               hover_color="#cce5ff", text_color="blue")
+    resend_btn = ctk.CTkButton(frame, text="Resend OTP", width=120, command=resend_otp, fg_color="transparent", hover_color="#cce5ff", text_color="blue")
     resend_btn.pack(pady=(0, 20))
 
     # --- Submit Button ---
@@ -144,7 +148,7 @@ def start_otpForgotpage(email, new_password):
         if len(otp) != 6:
             messagebox.showerror("Error", "Please enter a valid 6-digit OTP.")
             return
-        do_otp(generated_otp, otp, email, new_password, root)
+        do_otp(generated_otp, otp, firstname, lastname, username, co_number, email, b_address, password, root)
 
     submit_btn = ctk.CTkButton(frame, text="Submit", width=200, command=verify_otp)
     submit_btn.pack(pady=(0, 10))
@@ -155,15 +159,28 @@ def start_otpForgotpage(email, new_password):
     # --- Initial OTP Generation ---
     otp_genetarot()
 
-    # --- MODIFICATION: Removed custom close button and its function ---
+    # --- Close Button ---
+    close_btn = tk.Button(
+        root,
+        text="✖",
+        bg="#E74C3C",
+        fg="white",
+        bd=0,
+        width=4,
+        height=1,
+        font=("Arial", 12, "bold"),
+        activebackground="#C0392B",
+        cursor="hand2",
+        command=close_window
+    )
+    close_btn.place(relx=1.0, rely=0.0, anchor="ne")
 
     root.mainloop()
 
-
-def do_otp(generated_otp, otp, email, new_password, window):
+def do_otp(generated_otp, otp, firstname, lastname, username, co_number, email, b_address, password, window):
     if generated_otp == otp:
-        forgotpassword(email, new_password)
-        messagebox.showinfo("Success", "Your password has been reset successfully!")
+        signup(firstname, lastname, username, co_number, email, b_address, password)
+        window.quit()
         window.destroy()
         from Log_In_GUI import start_login1
         start_login1()
