@@ -1,5 +1,5 @@
 import bcrypt
-from database_connector import get_connection  # <-- your DB connection file
+from database_connector import get_connection
 
 # -------------------- SIGN UP --------------------
 def signup(firstname, lastname, username, co_number, email, barangay_address, password):
