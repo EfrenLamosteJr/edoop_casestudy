@@ -2,6 +2,9 @@
 import customtkinter as ctk
 import tkinter as tk
 import re  # REQUIRED for contact number validation
+from PIL import Image, ImageTk
+import requests
+from io import BytesIO
 
 
 def start_signup1():
@@ -90,10 +93,25 @@ def start_signup1():
     password_entry = create_field(row4, "Password")
     password_entry.configure(show="*")
 
-    view_img = tk.PhotoImage(
-        file=r"C:\Users\EfrenLamostejr\Documents\Study\Oop\build\Image_Resources\view.png")
-    hide_img = tk.PhotoImage(
-        file=r"C:\Users\EfrenLamostejr\Documents\Study\Oop\build\Image_Resources\hide.png")
+    def load_image_from_url(url, size=None):
+        try:
+            response = requests.get(url)
+            response.raise_for_status()  # will throw error if request failed
+            img_data = BytesIO(response.content)
+            pil_img = Image.open(img_data)
+            if size:  # optional resize
+                pil_img = pil_img.resize(size, Image.LANCZOS)
+            return ImageTk.PhotoImage(pil_img)
+        except Exception as e:
+            print("❌ Error loading image:", e)
+            return None
+
+    view_url = "https://raw.githubusercontent.com/EfrenLamosteJr/edoop_casestudy/5ef8907a670294733dfb769d07195e84db937dd9/build/Image_Resources/view.png"
+    hide_url = "https://raw.githubusercontent.com/EfrenLamosteJr/edoop_casestudy/5ef8907a670294733dfb769d07195e84db937dd9/build/Image_Resources/hide.png"
+
+    # --- Eye icon toggle ---
+    view_img = load_image_from_url(view_url, size=(20, 20))
+    hide_img = load_image_from_url(hide_url, size=(20, 20))
     eye_label_password = tk.Label(row4, image=view_img, bg="white", cursor="hand2")
     eye_label_password.place(in_=password_entry, relx=1.0, x=-2, rely=0.5, anchor="e")
 
