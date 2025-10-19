@@ -7,8 +7,11 @@ from database_connector import get_connection
 from PIL import Image, ImageTk
 import requests
 from io import BytesIO
+from auth import get_user_id_by_username, insert_document_request  # Added imports
 
 current_username = None
+
+
 # --- DATABASE FUNCTIONS ---
 def get_current_user_data(username):
     print(f"Fetching data for username: {username}")  # Debug print
@@ -58,7 +61,7 @@ def save_user_profile_data(firstname, lastname, picture_path):
     finally:
         cur.close()
         conn.close()
-# =============================================================================
+
 # --- PAGE CREATION FUNCTIONS ---
 
 def create_home_page(parent_frame):
@@ -67,17 +70,20 @@ def create_home_page(parent_frame):
                                  text_color="gray")
     content_label.place(relx=0.5, rely=0.5, anchor="center")
 
+
 def create_about_us_page(parent_frame):
     """Creates the content for the About Us page."""
     content_label = ctk.CTkLabel(parent_frame, text="This is the About Us page.", font=ctk.CTkFont(size=20),
                                  text_color="gray")
     content_label.place(relx=0.5, rely=0.5, anchor="center")
 
+
 def create_contact_us_page(parent_frame):
     """Creates the content for the Contact Us page."""
     content_label = ctk.CTkLabel(parent_frame, text="Contact information goes here.", font=ctk.CTkFont(size=20),
                                  text_color="gray")
     content_label.place(relx=0.5, rely=0.5, anchor="center")
+
 
 def create_services_page(parent_frame):
     """Creates the services page with document request functionality."""
@@ -180,7 +186,23 @@ def create_services_page(parent_frame):
             show_info_popup("Incomplete Requirements", f"Please upload all required files. Missing:\n\n" + "\n".join(
                 f"• {req}" for req in missing_reqs))
         else:
-            show_info_popup("Submission Successful", f"Your request for '{doc_name}' has been successfully submitted.")
+            # Get user ID from username
+            global current_username
+            user_id = get_user_id_by_username(current_username)
+            if not user_id:
+                show_info_popup("Error", "Unable to identify user. Please log in again.")
+                return
+
+            # Get file paths (if available)
+            valid_id_path = uploaded_files.get("Valid ID")
+            prof_of_payment_path = uploaded_files.get("Proof of Payment")
+
+            # Insert the request into the database
+            if insert_document_request(user_id, doc_name, valid_id_path, prof_of_payment_path):
+                show_info_popup("Submission Successful",
+                                f"Your request for '{doc_name}' has been submitted and is pending approval.")
+            else:
+                show_info_popup("Error", "Failed to submit request. Please try again.")
 
     # --- MODIFIED: handle_upload now shows a preview ---
     def handle_upload(status_label, preview_label, requirement_name):
@@ -265,6 +287,7 @@ def create_services_page(parent_frame):
                                    anchor="w")
         doc_button.configure(command=lambda name=doc_name, btn=doc_button: select_document(name, btn))
         doc_button.pack(fill="x", pady=4)
+
 
 def create_profile_page(parent_frame):
     """Creates the profile page with data from the database."""

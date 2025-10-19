@@ -86,3 +86,38 @@ def update_user_profile_by_username(username, firstname, lastname, profile_pictu
     finally:
         cur.close()
         conn.close()
+
+# -------------------- INSERT DOCUMENT REQUEST --------------------
+def insert_document_request(user_id, document_name, valid_id_path=None, prof_of_payment_path=None):
+    """Insert a new document request into the database."""
+    conn = get_connection()
+    cur = conn.cursor()
+    try:
+        cur.execute("""
+            INSERT INTO document_requests (user_id, document_name, valid_id, prof_of_payment)
+            VALUES (%s, %s, %s, %s)
+        """, (user_id, document_name, valid_id_path, prof_of_payment_path))
+        conn.commit()
+        return True
+    except Exception as error:
+        print(f"Error inserting document request: {error}")
+        return False
+    finally:
+        cur.close()
+        conn.close()
+
+# -------------------- GET USER ID BY USERNAME --------------------
+def get_user_id_by_username(username):
+    """Fetch user ID by username."""
+    conn = get_connection()
+    cur = conn.cursor()
+    try:
+        cur.execute("SELECT id FROM resident WHERE username = %s", (username,))
+        row = cur.fetchone()
+        return row[0] if row else None
+    except Exception as error:
+        print(f"Error fetching user ID: {error}")
+        return None
+    finally:
+        cur.close()
+        conn.close()
