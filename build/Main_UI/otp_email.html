@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    .container {
+      border: 1px solid #ddd;
+      padding: 20px;
+      font-family: Arial, sans-serif;
+    }
+    .header {
+      background-color: #007bff;
+      color: white;
+      padding: 10px;
+      text-align: center;
+      font-size: 1.5em;
+    }
+    .body {
+      margin-top: 20px;
+      font-size: 1.1em;
+    }
+    .otp {
+      font-size: 2em;
+      font-weight: bold;
+      color: #333;
+      margin: 10px 0;
+    }
+    .footer {
+      margin-top: 30px;
+      font-size: 0.9em;
+      color: #888;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">OTP Verification</div>
+    <div class="body">
+      Your OTP code is:
+      <div class="otp">{{ otp }}</div>
+      It will expire in **5 minutes**.
+    </div>
+    <div class="footer">
+      If you did not request this, you can ignore this email.
+    </div>
+  </div>
+</body>
+</html>
