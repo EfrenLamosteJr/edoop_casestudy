@@ -165,6 +165,7 @@ def start_admin_dashboard():
 
 #TANGINAMO
 #TANGINAMO
+#pakyu mam burce
 
 if __name__ == "__main__":
     start_admin_dashboard()
