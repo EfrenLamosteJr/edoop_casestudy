@@ -3,6 +3,9 @@ import customtkinter as ctk
 import tkinter as tk
 from tkinter import messagebox
 import re
+from PIL import Image, ImageTk
+import requests
+from io import BytesIO
 
 
 # ----------------- NEW FUNCTION STARTS HERE -----------------
@@ -59,10 +62,24 @@ def start_resetpass():
                                   font=("Nirmala UI", 11))
     new_pass_entry.pack(padx=10, pady=(0, 15))
 
-    view_img = tk.PhotoImage(
-        file=r"C:\Users\EfrenLamostejr\Documents\Study\Oop\build\Image_Resources\view.png")
-    hide_img = tk.PhotoImage(
-        file=r"C:\Users\EfrenLamostejr\Documents\Study\Oop\build\Image_Resources\hide.png")
+    def load_image_from_url(url, size=None):
+        try:
+            response = requests.get(url)
+            response.raise_for_status()
+            img_data = BytesIO(response.content)
+            pil_img = Image.open(img_data)
+            if size:  # optional resize
+                pil_img = pil_img.resize(size, Image.LANCZOS)
+            return ImageTk.PhotoImage(pil_img)
+        except Exception as e:
+            print("❌ Error loading image:", e)
+            return None
+    view_url = "https://raw.githubusercontent.com/EfrenLamosteJr/edoop_casestudy/5ef8907a670294733dfb769d07195e84db937dd9/build/Image_Resources/view.png"
+    hide_url = "https://raw.githubusercontent.com/EfrenLamosteJr/edoop_casestudy/5ef8907a670294733dfb769d07195e84db937dd9/build/Image_Resources/hide.png"
+
+    # --- Eye icon toggle ---
+    view_img = load_image_from_url(view_url, size=(20, 20))
+    hide_img = load_image_from_url(hide_url, size=(20, 20))
     eye_label_new_pass = tk.Label(entry_column, image=view_img, bg="white", cursor="hand2")
     eye_label_new_pass.place(in_=new_pass_entry, relx=1.0, x=-2, rely=0.5, anchor="e")
 
@@ -153,11 +170,10 @@ def start_resetpass():
     image_column.pack(side="right", fill="y", padx=(0, 20), pady=20)
 
     try:
-        logo_img = tk.PhotoImage(
-            file=r"C:\Users\EfrenLamostejr\Documents\Study\Oop\build\Image_Resources\P2SERVE_LOGO.png")
-        resized_logo_img = logo_img.subsample(2, 2)
-        logo_lbl = tk.Label(image_column, image=resized_logo_img, bg="#3498db")
-        logo_lbl.image = resized_logo_img
+        logo_url = "https://raw.githubusercontent.com/EfrenLamosteJr/edoop_casestudy/5ef8907a670294733dfb769d07195e84db937dd9/build/Image_Resources/P2SERVE_LOGO.png"
+        logo_img = load_image_from_url(logo_url)
+        logo_lbl = tk.Label(image_column, image=logo_img, bg="#3498db")
+        logo_lbl.image = logo_img
         logo_lbl.place(relx=0.5, rely=0.5, anchor="center")
     except Exception:
         logo_lbl = ctk.CTkLabel(image_column, text="[P2SERVE Logo]", text_color="white", font=("Nirmala UI", 16))

@@ -2,9 +2,11 @@
 import customtkinter as ctk
 import tkinter as tk
 from tkinter import filedialog
-import os  # Needed to get the base name of the file path
-from PIL import Image  # Import Pillow for image processing
+import os
 from database_connector import get_connection
+from PIL import Image, ImageTk
+import requests
+from io import BytesIO
 
 current_username = None
 # --- DATABASE FUNCTIONS ---
@@ -380,12 +382,22 @@ def start_mainhomepage(username=None):
 
     header_frame = ctk.CTkFrame(root, height=80, fg_color=HEADER_BG, corner_radius=0)
     header_frame.pack(fill="x", side="top")
-    IMAGE_PATH = r"C:\Users\Bryan\Downloads\PythonProject-20251015T135346Z-1-001\PythonProject\build\Image_Resources\P2SERVE_LOGO.png"
     try:
-        logo_img = tk.PhotoImage(file=IMAGE_PATH)
-        resized_logo_img = logo_img.subsample(2, 2)
-        logo_lbl = ctk.CTkLabel(header_frame, image=resized_logo_img, text="", bg_color=HEADER_BG)
-        logo_lbl.image = resized_logo_img
+        def load_image_from_url(url, size=None):
+            response = requests.get(url)
+            response.raise_for_status()
+            img_data = BytesIO(response.content)
+            pil_img = Image.open(img_data)
+            return pil_img  # return PIL image
+
+        logo_url = "https://raw.githubusercontent.com/EfrenLamosteJr/edoop_casestudy/5ef8907a670294733dfb769d07195e84db937dd9/build/Image_Resources/P2SERVE_LOGO.png"
+        pil_img = load_image_from_url(logo_url)
+
+        # Use CTkImage with desired display size (e.g., 60x60 px)
+        logo_img = ctk.CTkImage(light_image=pil_img, size=(60, 60))
+
+        logo_lbl = ctk.CTkLabel(header_frame, image=logo_img, text="", fg_color=HEADER_BG)
+        logo_lbl.image = logo_img  # keep reference
         logo_lbl.place(relx=0.01, rely=0.5, anchor="w")
         TITLE_PLACEMENT_X = 0.01 + 0.08
     except Exception as e:

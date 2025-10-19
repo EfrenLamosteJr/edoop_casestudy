@@ -1,28 +1,22 @@
 # Register_GUI
 import customtkinter as ctk
 import tkinter as tk
-import re  # REQUIRED for contact number validation
+import re
 from PIL import Image, ImageTk
 import requests
 from io import BytesIO
 
 
 def start_signup1():
-    # --- App Configuration ---
     ctk.set_appearance_mode("light")
     ctk.set_default_color_theme("blue")
 
     root = ctk.CTk()
-    # --- MODIFICATION: Added title for the standard window bar ---
     root.title("P2SERVE - Register")
 
     width, height = 800, 500
     root.geometry(f"{width}x{height}")
     root.resizable(False, False)
-
-    # --- MODIFICATION: Removed root.overrideredirect(True) ---
-    # --- MODIFICATION: Removed custom top_frame and its buttons ---
-    # --- MODIFICATION: Removed draggable window logic ---
 
     # --- Center window ---
     root.update_idletasks()
@@ -30,15 +24,26 @@ def start_signup1():
     y = (root.winfo_screenheight() // 2) - (height // 2)
     root.geometry(f"{width}x{height}+{x}+{y}")
 
-    # --- MODIFICATION: Removed root.attributes('-topmost', True) ---
-
     # --- Left Frame (Logo Section) ---
     left_frame = ctk.CTkFrame(root, width=250, fg_color="#3498db", corner_radius=0)
     left_frame.pack(side="left", fill="y")
 
     try:
-        logo_img = tk.PhotoImage(
-            file=r"C:\Users\EfrenLamostejr\Documents\Study\Oop\build\Image_Resources\P2SERVE_LOGO.png")
+        def load_image_from_url(url, size=None):
+            try:
+                response = requests.get(url)
+                response.raise_for_status()  # will throw error if request failed
+                img_data = BytesIO(response.content)
+                pil_img = Image.open(img_data)
+                if size:  # optional resize
+                    pil_img = pil_img.resize(size, Image.LANCZOS)
+                return ImageTk.PhotoImage(pil_img)
+            except Exception as e:
+                print("❌ Error loading image:", e)
+                return None
+
+        logo_url = "https://raw.githubusercontent.com/EfrenLamosteJr/edoop_casestudy/5ef8907a670294733dfb769d07195e84db937dd9/build/Image_Resources/P2SERVE_LOGO.png"
+        logo_img = load_image_from_url(logo_url)
         logo_lbl = tk.Label(left_frame, image=logo_img, bg="#3498db")
         logo_lbl.image = logo_img
         logo_lbl.place(relx=0.5, rely=0.5, anchor="center")
@@ -54,12 +59,10 @@ def start_signup1():
     content_frame = ctk.CTkFrame(right_frame, fg_color="white")
     content_frame.place(relx=0.5, rely=0.45, anchor="center")
 
-    # Title
     title = ctk.CTkLabel(content_frame, text="CREATE ACCOUNT", text_color="black",
                          font=("Arial", 24, "bold"))
     title.pack(pady=(0, 15))
 
-    # --- Helper function to create a field ---
     def create_field(frame, label_text):
         field_frame = ctk.CTkFrame(frame, fg_color="white")
         field_frame.pack(side="left", padx=10, pady=5)
@@ -226,7 +229,7 @@ def start_signup1():
         content_frame,
         text="Already have an account? Log in",
         fg="#5DA7FF",
-        bg="white",  # Explicitly set background for tk Label
+        bg="white",
         cursor="hand2",
         font=("Arial", 10)
     )
@@ -251,7 +254,6 @@ def start_signup1():
 
 
 def do_signup(firstname, lastname, username, co_number, email, b_address, password, window):
-    # Simplified this function call
     window.destroy()
     from OTP_Form_GUI import start_otppage
     start_otppage(firstname, lastname, username, co_number, email, b_address, password)

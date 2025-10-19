@@ -7,7 +7,6 @@ import requests
 from io import BytesIO
 
 def open_admin_login(current_window):
-    """Closes the current window and opens the admin login window."""
     print("Switching to Admin Login...")
     current_window.destroy()
     # ADMIN GUI
@@ -17,10 +16,8 @@ def open_admin_login(current_window):
 
 def start_login1():
     root = tk.Tk()
-    # --- MODIFICATION: Added title for the standard window bar ---
     root.title("P2SERVE Log In")
 
-    # --- MODIFICATION: Removed root.overrideredirect(True) ---
 
     root.geometry("700x400")
     root.configure(bg="#2b2b2b")
@@ -44,7 +41,7 @@ def start_login1():
     def load_image_from_url(url, size=None):
         try:
             response = requests.get(url)
-            response.raise_for_status()  # will throw error if request failed
+            response.raise_for_status()
             img_data = BytesIO(response.content)
             pil_img = Image.open(img_data)
             if size:  # optional resize
@@ -63,21 +60,19 @@ def start_login1():
     right_frame = tk.Frame(container, bg="white")
     right_frame.pack(side="right", fill="both", expand=True)
 
-    # --- MODIFICATION: Removed custom minimize and close buttons ---
-
     # --- ADMIN ICON BUTTON ---
     admin_btn = tk.Button(
         right_frame,
-        text="⚙️",  # Gear emoji as an icon
+        text="⚙️",
         bg="white",
         fg="black",
         bd=0,
-        font=("Segoe UI Emoji", 16),  # Font that supports emojis
+        font=("Segoe UI Emoji", 16),
         activebackground="#e0e0e0",
         cursor="hand2",
-        command=lambda: open_admin_login(root)  # Calls the new function
+        command=lambda: open_admin_login(root)
     )
-    admin_btn.place(x=10, y=5)  # Position in the top-left corner
+    admin_btn.place(x=10, y=5)
 
     # --- TITLE OF THE WINDOWS FORM ---
     title = tk.Label(right_frame, text="P2SERVE LOG IN", bg="white", fg="black", font=("Arial", 24, "bold"))
