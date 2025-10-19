@@ -2,7 +2,9 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
 from auth import login
-
+from PIL import Image, ImageTk
+import requests
+from io import BytesIO
 
 def open_admin_login(current_window):
     """Closes the current window and opens the admin login window."""
@@ -39,8 +41,21 @@ def start_login1():
     left_frame = tk.Frame(container, bg="#3498db", width=250)
     left_frame.pack(side="left", fill="y")
 
-    logo_img = tk.PhotoImage(
-        file=r"C:\Users\EfrenLamostejr\Documents\Study\PythonProject-20251019T080814Z-1-001\PythonProject\build\Image_Resources\P2SERVE_LOGO.png")
+    def load_image_from_url(url, size=None):
+        try:
+            response = requests.get(url)
+            response.raise_for_status()  # will throw error if request failed
+            img_data = BytesIO(response.content)
+            pil_img = Image.open(img_data)
+            if size:  # optional resize
+                pil_img = pil_img.resize(size, Image.LANCZOS)
+            return ImageTk.PhotoImage(pil_img)
+        except Exception as e:
+            print("❌ Error loading image:", e)
+            return None
+
+    logo_url = "https://raw.githubusercontent.com/EfrenLamosteJr/edoop_casestudy/5ef8907a670294733dfb769d07195e84db937dd9/build/Image_Resources/P2SERVE_LOGO.png"
+    logo_img = load_image_from_url(logo_url)
     logo_lbl = tk.Label(left_frame, image=logo_img, bg="#3498db")
     logo_lbl.image = logo_img
     logo_lbl.place(relx=0.5, rely=0.5, anchor="center")
@@ -84,11 +99,12 @@ def start_login1():
     l_password = ttk.Entry(align_frame, style="Rounded.TEntry", show="*", width=40)
     l_password.pack(pady=(0, 10))
 
+    view_url = "https://raw.githubusercontent.com/EfrenLamosteJr/edoop_casestudy/5ef8907a670294733dfb769d07195e84db937dd9/build/Image_Resources/view.png"
+    hide_url = "https://raw.githubusercontent.com/EfrenLamosteJr/edoop_casestudy/5ef8907a670294733dfb769d07195e84db937dd9/build/Image_Resources/hide.png"
+
     # --- Eye icon toggle ---
-    view_img = tk.PhotoImage(
-        file=r"C:\Users\EfrenLamostejr\Documents\Study\PythonProject-20251019T080814Z-1-001\PythonProject\build\Image_Resources\view.png")
-    hide_img = tk.PhotoImage(
-        file=r"C:\Users\EfrenLamostejr\Documents\Study\PythonProject-20251019T080814Z-1-001\PythonProject\build\Image_Resources\hide.png")
+    view_img = load_image_from_url(view_url, size=(20, 20))
+    hide_img = load_image_from_url(hide_url, size=(20, 20))
     eye_label = tk.Label(align_frame, image=view_img, bg="white", cursor="hand2")
     eye_label.place(in_=l_password, relx=1.0, x=-2, rely=0.5, anchor="e")
 
