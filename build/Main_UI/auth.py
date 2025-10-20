@@ -1,6 +1,7 @@
 import bcrypt
 from database_connector import get_connection
-
+import smtplib
+from email.message import EmailMessage
 # -------------------- SIGN UP --------------------
 def signup(firstname, lastname, username, co_number, email, barangay_address, password):
     conn = get_connection()
@@ -121,3 +122,97 @@ def get_user_id_by_username(username):
     finally:
         cur.close()
         conn.close()
+
+# -------------------- CREATE STAFF ACCOUNT --------------------
+def create_staff_account(full_name, username, password, position, role):
+    conn = get_connection()
+    cur = conn.cursor()
+    hashed = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+    try:
+        cur.execute("""
+            INSERT INTO staff (full_name, username, password, position, role)
+            VALUES (%s, %s, %s, %s, %s)
+        """, (full_name, username, hashed.decode('utf-8'), position or None, role))
+        conn.commit()
+        return True, "Staff account created successfully."
+    except Exception as error:
+        return False, f"Error: {error}"
+    finally:
+        cur.close()
+        conn.close()
+
+
+# -------------------- UPDATE RESIDENT STATUS --------------------
+def update_resident_status(resident_id, status):
+    """Update the status of a resident."""
+    conn = get_connection()
+    cur = conn.cursor()
+    try:
+        cur.execute("UPDATE resident SET status = %s WHERE id = %s", (status, resident_id))
+        conn.commit()
+        return True
+    except Exception as error:
+        print(f"Error updating status: {error}")
+        return False
+    finally:
+        cur.close()
+        conn.close()
+
+
+# -------------------- SEND REJECTION EMAIL --------------------
+def send_rejection_email(to_email, reason):
+    """Send a rejection email with the reason using HTML template."""
+    try:
+        with open("rejection_email.html", "r", encoding="utf-8") as file:
+            html_content = file.read()
+        html_content = html_content.replace("{{ reason }}", reason)
+
+        server = smtplib.SMTP('smtp.gmail.com', 587)
+        server.starttls()
+        from_email = "barangaypoblacion2eservice@gmail.com"
+        server.login(from_email, 'veorjdapcuglikhu')
+
+        msg = EmailMessage()
+        msg['Subject'] = "Account Registration Rejected"
+        msg['From'] = from_email
+        msg['To'] = to_email
+        msg.set_content(
+            f"Your account registration has been rejected.\n\nReason: {reason}\n\nPlease contact support for more information.")
+        msg.add_alternative(html_content, subtype='html')
+
+        server.send_message(msg)
+        server.quit()
+        print(f"Rejection email sent to {to_email}")
+        return True
+    except Exception as error:
+        print(f"Error sending email: {error}")
+        return False
+
+
+# -------------------- SEND APPROVAL EMAIL --------------------
+def send_approval_email(to_email):
+    """Send an approval email using HTML template."""
+    try:
+        with open("approval_email.html", "r", encoding="utf-8") as file:
+            html_content = file.read()
+
+        server = smtplib.SMTP('smtp.gmail.com', 587)
+        server.starttls()
+        from_email = "barangaypoblacion2eservice@gmail.com"
+        server.login(from_email, 'veorjdapcuglikhu')
+
+        msg = EmailMessage()
+        msg['Subject'] = "Account Registration Approved"
+        msg['From'] = from_email
+        msg['To'] = to_email
+        msg.set_content(
+            "Congratulations! Your account registration has been approved. You can now log in to your account and access all resident services.")
+        msg.add_alternative(html_content, subtype='html')
+
+        server.send_message(msg)
+        server.quit()
+        print(f"Approval email sent to {to_email}")
+        return True
+    except Exception as error:
+        print(f"Error sending approval email: {error}")
+        return False

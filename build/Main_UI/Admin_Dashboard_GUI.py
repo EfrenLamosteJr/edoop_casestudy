@@ -1,7 +1,7 @@
-# Admin_Dashboard_GUI.py (Corrected scope for action functions)
+# Admin_Dashboard_GUI.py
 import customtkinter as ctk
 from database_connector import get_connection
-
+from auth import create_staff_account, update_resident_status, send_rejection_email, send_approval_email
 # --- Color Palette ---
 SIDEBAR_BG = "#3498db"
 SIDEBAR_BTN_HOVER = "#2980b9"
@@ -66,6 +66,52 @@ def get_pending_requests():
         cur.close()
         conn.close()
 
+def get_existing_staff():
+    """Fetch all existing staff accounts."""
+    conn = get_connection()
+    cur = conn.cursor()
+    try:
+        cur.execute("SELECT id, full_name, username, position, role, status FROM staff")
+        rows = cur.fetchall()
+        return [{"id": row[0], "name": row[1], "username": row[2], "position": row[3], "role": row[4], "status": row[5]}
+                for row in rows]
+    except Exception as error:
+        print(f"Error fetching staff: {error}")
+        return []
+    finally:
+        cur.close()
+        conn.close()
+
+def get_pending_residents():
+    """Fetch all pending residents."""
+    conn = get_connection()
+    cur = conn.cursor()
+    try:
+        cur.execute("SELECT id, firstname, lastname, email, co_number FROM resident WHERE status = 'pending'")
+        rows = cur.fetchall()
+        return [{"id": row[0], "name": f"{row[1]} {row[2]}", "email": row[3], "contact": row[4]} for row in rows]
+    except Exception as error:
+        print(f"Error fetching pending residents: {error}")
+        return []
+    finally:
+        cur.close()
+        conn.close()
+
+def get_approved_residents():
+    """Fetch all approved residents."""
+    conn = get_connection()
+    cur = conn.cursor()
+    try:
+        cur.execute("SELECT id, firstname, lastname, email, co_number FROM resident WHERE status = 'approved'")
+        rows = cur.fetchall()
+        return [{"id": row[0], "name": f"{row[1]} {row[2]}", "email": row[3], "contact": row[4]} for row in rows]
+    except Exception as error:
+        print(f"Error fetching approved residents: {error}")
+        return []
+    finally:
+        cur.close()
+        conn.close()
+
 # --- Content Creation Functions for Each Page ---
 def show_dashboard_content(parent_frame):
     pending_requests = get_pending_requests_count()
@@ -101,8 +147,7 @@ def show_dashboard_content(parent_frame):
 
     def create_action_button(parent, text, color, command=None):
         cmd = command if command else lambda t=text: print(f"Quick action clicked: {t}")
-        button = ctk.CTkButton(parent, text=text, fg_color=color, height=50, font=ctk.CTkFont(size=14, weight="bold"),
-                               command=cmd)
+        button = ctk.CTkButton(parent, text=text, fg_color=color, height=50, font=ctk.CTkFont(size=14, weight="bold"), command=cmd)
         button.grid(sticky="ew", padx=10)
         return button
     create_action_button(actions_frame, "✅  Approve Residents", "#2ECC71", command=None).grid(row=0, column=0)
@@ -125,8 +170,7 @@ def show_request_management_content(parent_frame):
     if not pending_requests:
         no_requests_banner = ctk.CTkFrame(scrollable_frame, fg_color="#D4EDDA", border_color="#28A745", border_width=1,corner_radius=10)
         no_requests_banner.pack(fill="x", pady=(20, 0))
-        ctk.CTkLabel(no_requests_banner, text="✅ Good job! There are currently no pending requests to process.",
-                     font=ctk.CTkFont(size=14, weight="bold"), text_color="#155724", anchor="center").pack(pady=10,padx=20)
+        ctk.CTkLabel(no_requests_banner, text="✅ Good job! There are currently no pending requests to process.", font=ctk.CTkFont(size=14, weight="bold"), text_color="#155724", anchor="center").pack(pady=10,padx=20)
     else:
         container = ctk.CTkFrame(scrollable_frame, fg_color="white", corner_radius=5)
         container.pack(fill="x", pady=(0, 20))
@@ -163,47 +207,54 @@ def show_request_management_content(parent_frame):
             def reject_action(req_id):
                 print(f"Reject request {req_id}")
             ctk.CTkButton(action_buttons_frame, text="View", width=60, height=25, fg_color=VIEW_COLOR,
-                          font=ctk.CTkFont(size=10), command=lambda id=request['id']: view_action(id)).pack(side="left",
-                                                                                                            padx=2)
+                          font=ctk.CTkFont(size=10), command=lambda id=request['id']: view_action(id)).pack(side="left",padx=2)
             ctk.CTkButton(action_buttons_frame, text="Process", width=60, height=25, fg_color=APPROVE_COLOR,
-                          font=ctk.CTkFont(size=10), command=lambda id=request['id']: process_action(id)).pack(
-                side="left", padx=2)
+                          font=ctk.CTkFont(size=10), command=lambda id=request['id']: process_action(id)).pack(side="left", padx=2)
             ctk.CTkButton(action_buttons_frame, text="Reject", width=60, height=25, fg_color=REJECT_COLOR,
-                          font=ctk.CTkFont(size=10), command=lambda id=request['id']: reject_action(id)).pack(
-                side="left", padx=2)
+                          font=ctk.CTkFont(size=10), command=lambda id=request['id']: reject_action(id)).pack(side="left", padx=2)
 
 def show_resident_accounts_content(parent_frame):
     """Creates and displays the UI for managing resident accounts."""
-    pending_residents = [
-        {"id": 3, "name": "Eulysses Domantay", "email": "domantayeulysses23@gmail.com", "contact": "096086327971"},
-    ]
-    approved_residents = [
-        {"id": 4, "name": "Glesie Domantay", "email": "glesied33@gmail.com", "contact": "09026392156"},
-    ]
+
+    def refresh_content():
+        # Clear and reload the content
+        for widget in parent_frame.winfo_children():
+            widget.destroy()
+        show_resident_accounts_content(parent_frame)
+
+    pending_residents = get_pending_residents()
+    approved_residents = get_approved_residents()
 
     scrollable_frame = ctk.CTkScrollableFrame(parent_frame, fg_color="transparent")
     scrollable_frame.pack(fill="both", expand=True)
 
     pending_title_text = f"New Registrations Pending Approval ({len(pending_residents)})"
-    pending_title = ctk.CTkLabel(scrollable_frame, text=pending_title_text, font=ctk.CTkFont(size=18, weight="bold"), anchor="w")
+    pending_title = ctk.CTkLabel(scrollable_frame, text=pending_title_text, font=ctk.CTkFont(size=18, weight="bold"),
+                                 anchor="w")
     pending_title.pack(fill="x", pady=(10, 5), padx=10)
 
     pending_container = ctk.CTkFrame(scrollable_frame, fg_color="white", corner_radius=5)
     pending_container.pack(fill="x", pady=(0, 20), padx=10)
 
     if not pending_residents:
-        ctk.CTkLabel(pending_container, text="No pending registrations.", text_color="gray", font=ctk.CTkFont(size=12)).pack(pady=20)
+        ctk.CTkLabel(pending_container, text="No pending registrations.", text_color="gray",
+                     font=ctk.CTkFont(size=12)).pack(pady=20)
     else:
         header_frame_pending = ctk.CTkFrame(pending_container, fg_color="transparent")
         header_frame_pending.pack(fill="x", padx=10, pady=(10, 5))
         header_frame_pending.grid_columnconfigure((1, 2, 3), weight=1)
         header_frame_pending.grid_columnconfigure(4, weight=0)
 
-        ctk.CTkLabel(header_frame_pending, text="ID", font=ctk.CTkFont(weight="bold")).grid(row=0, column=0, sticky="w", padx=5)
-        ctk.CTkLabel(header_frame_pending, text="NAME", font=ctk.CTkFont(weight="bold")).grid(row=0, column=1, sticky="w", padx=5)
-        ctk.CTkLabel(header_frame_pending, text="EMAIL", font=ctk.CTkFont(weight="bold")).grid(row=0, column=2, sticky="w", padx=5)
-        ctk.CTkLabel(header_frame_pending, text="CONTACT NO.", font=ctk.CTkFont(weight="bold")).grid(row=0, column=3, sticky="w", padx=5)
-        ctk.CTkLabel(header_frame_pending, text="ACTION", font=ctk.CTkFont(weight="bold")).grid(row=0, column=4, sticky="e", padx=5)
+        ctk.CTkLabel(header_frame_pending, text="ID", font=ctk.CTkFont(weight="bold")).grid(row=0, column=0, sticky="w",
+                                                                                            padx=5)
+        ctk.CTkLabel(header_frame_pending, text="NAME", font=ctk.CTkFont(weight="bold")).grid(row=0, column=1,
+                                                                                              sticky="w", padx=5)
+        ctk.CTkLabel(header_frame_pending, text="EMAIL", font=ctk.CTkFont(weight="bold")).grid(row=0, column=2,
+                                                                                               sticky="w", padx=5)
+        ctk.CTkLabel(header_frame_pending, text="CONTACT NO.", font=ctk.CTkFont(weight="bold")).grid(row=0, column=3,
+                                                                                                     sticky="w", padx=5)
+        ctk.CTkLabel(header_frame_pending, text="ACTION", font=ctk.CTkFont(weight="bold")).grid(row=0, column=4,
+                                                                                                sticky="e", padx=5)
 
         for resident in pending_residents:
             row_frame = ctk.CTkFrame(pending_container, fg_color="transparent")
@@ -219,70 +270,202 @@ def show_resident_accounts_content(parent_frame):
             action_buttons_frame = ctk.CTkFrame(row_frame, fg_color="transparent")
             action_buttons_frame.grid(row=0, column=4, sticky="e")
 
-            # --- >>> CORRECTED: Define actions on separate lines <<< ---
             def view_action(res_id):
                 print(f"View resident {res_id}")
-            def approve_action(res_id):
-                print(f"Approve resident {res_id}")
-            def reject_action(res_id):
-                print(f"Reject resident {res_id}")
-            # --- >>>-------------------------------------------<<< ---
 
-            # Assign commands using the defined functions
-            ctk.CTkButton(action_buttons_frame, text="View", width=60, height=25, fg_color=VIEW_COLOR, font=ctk.CTkFont(size=10), command=lambda id=resident['id']: view_action(id)).pack(side="left", padx=2)
-            ctk.CTkButton(action_buttons_frame, text="Approve", width=60, height=25, fg_color=APPROVE_COLOR, font=ctk.CTkFont(size=10), command=lambda id=resident['id']: approve_action(id)).pack(side="left", padx=2)
-            ctk.CTkButton(action_buttons_frame, text="Reject", width=60, height=25, fg_color=REJECT_COLOR, font=ctk.CTkFont(size=10), command=lambda id=resident['id']: reject_action(id)).pack(side="left", padx=2)
+            def approve_action(res_id, email):
+                if update_resident_status(res_id, 'approved'):
+                    if send_approval_email(email):
+                        print(f"Approved resident {res_id} and emailed {email}")
+                    else:
+                        print(f"Approved resident {res_id} but failed to send email")
+                    refresh_content()
+                else:
+                    print(f"Failed to approve resident {res_id}")
+
+            def reject_action(res_id, email):
+                # Create rejection popup
+                popup = ctk.CTkToplevel(parent_frame)
+                popup.title("Reject Resident")
+                popup.geometry("400x300")
+                popup.transient(parent_frame)
+                popup.grab_set()
+
+                ctk.CTkLabel(popup, text="Reason for Rejection:", font=ctk.CTkFont(size=14)).pack(pady=(20, 10))
+                reason_text = ctk.CTkTextbox(popup, height=100)
+                reason_text.pack(pady=(0, 20), padx=20, fill="x")
+
+                def send_reject():
+                    reason = reason_text.get("1.0", "end").strip()
+                    if not reason:
+                        ctk.CTkLabel(popup, text="Please enter a reason.", text_color="red").pack(pady=10)
+                        return
+                    if send_rejection_email(email, reason):
+                        print(f"Rejected resident {res_id} and emailed {email}")
+                        # Keep as pending, just refresh
+                        refresh_content()
+                    else:
+                        print(f"Failed to send email for resident {res_id}")
+                    popup.destroy()
+
+                ctk.CTkButton(popup, text="Send Rejection", command=send_reject).pack(pady=10)
+
+            ctk.CTkButton(action_buttons_frame, text="View", width=60, height=25, fg_color=VIEW_COLOR,
+                          font=ctk.CTkFont(size=10), command=lambda id=resident['id']: view_action(id)).pack(
+                side="left", padx=2)
+            ctk.CTkButton(action_buttons_frame, text="Approve", width=60, height=25, fg_color=APPROVE_COLOR,
+                          font=ctk.CTkFont(size=10), command=lambda id=resident['id'], email=resident['email']: approve_action(id, email)).pack(
+                side="left", padx=2)
+            ctk.CTkButton(action_buttons_frame, text="Reject", width=60, height=25, fg_color=REJECT_COLOR,
+                          font=ctk.CTkFont(size=10),
+                          command=lambda id=resident['id'], email=resident['email']: reject_action(id, email)).pack(
+                side="left", padx=2)
 
     approved_title_text = f"All Approved Resident Accounts ({len(approved_residents)})"
-    approved_title = ctk.CTkLabel(scrollable_frame, text=approved_title_text, font=ctk.CTkFont(size=18, weight="bold"), anchor="w")
+    approved_title = ctk.CTkLabel(scrollable_frame, text=approved_title_text, font=ctk.CTkFont(size=18, weight="bold"),
+                                  anchor="w")
     approved_title.pack(fill="x", pady=(20, 5), padx=10)
 
     approved_container = ctk.CTkFrame(scrollable_frame, fg_color="white", corner_radius=5)
     approved_container.pack(fill="x", pady=(0, 20), padx=10)
 
     if not approved_residents:
-        ctk.CTkLabel(approved_container, text="No approved residents found.", text_color="gray", font=ctk.CTkFont(size=12)).pack(pady=20)
+        ctk.CTkLabel(approved_container, text="No approved residents found.", text_color="gray",
+                     font=ctk.CTkFont(size=12)).pack(pady=20)
     else:
-        header_frame_approved = ctk.CTkFrame(approved_container, fg_color="transparent"); header_frame_approved.pack(fill="x", padx=10, pady=(10, 5)); header_frame_approved.grid_columnconfigure((1, 2, 3), weight=1)
-        ctk.CTkLabel(header_frame_approved, text="ID", font=ctk.CTkFont(weight="bold")).grid(row=0, column=0, sticky="w", padx=5); ctk.CTkLabel(header_frame_approved, text="NAME", font=ctk.CTkFont(weight="bold")).grid(row=0, column=1, sticky="w", padx=5); ctk.CTkLabel(header_frame_approved, text="EMAIL", font=ctk.CTkFont(weight="bold")).grid(row=0, column=2, sticky="w", padx=5); ctk.CTkLabel(header_frame_approved, text="CONTACT NO.", font=ctk.CTkFont(weight="bold")).grid(row=0, column=3, sticky="w", padx=5)
+        header_frame_approved = ctk.CTkFrame(approved_container, fg_color="transparent")
+        header_frame_approved.pack(fill="x", padx=10, pady=(10, 5))
+        header_frame_approved.grid_columnconfigure((1, 2, 3), weight=1)
+
+        ctk.CTkLabel(header_frame_approved, text="ID", font=ctk.CTkFont(weight="bold")).grid(row=0, column=0,sticky="w", padx=5)
+        ctk.CTkLabel(header_frame_approved, text="NAME", font=ctk.CTkFont(weight="bold")).grid(row=0, column=1,sticky="w", padx=5)
+        ctk.CTkLabel(header_frame_approved, text="EMAIL", font=ctk.CTkFont(weight="bold")).grid(row=0, column=2,sticky="w", padx=5)
+        ctk.CTkLabel(header_frame_approved, text="CONTACT NO.", font=ctk.CTkFont(weight="bold")).grid(row=0, column=3, sticky="w", padx=5)
+
         for resident in approved_residents:
-            row_frame = ctk.CTkFrame(approved_container, fg_color="transparent"); row_frame.pack(fill="x", padx=10, pady=5); row_frame.grid_columnconfigure((1, 2, 3), weight=1)
-            ctk.CTkLabel(row_frame, text=f"#{resident['id']}").grid(row=0, column=0, sticky="w", padx=5); ctk.CTkLabel(row_frame, text=resident['name']).grid(row=0, column=1, sticky="w", padx=5); ctk.CTkLabel(row_frame, text=resident['email']).grid(row=0, column=2, sticky="w", padx=5); ctk.CTkLabel(row_frame, text=resident['contact']).grid(row=0, column=3, sticky="w", padx=5)
+            row_frame = ctk.CTkFrame(approved_container, fg_color="transparent")
+            row_frame.pack(fill="x", padx=10, pady=5)
+            row_frame.grid_columnconfigure((1, 2, 3), weight=1)
+
+            ctk.CTkLabel(row_frame, text=f"#{resident['id']}").grid(row=0, column=0, sticky="w", padx=5)
+            ctk.CTkLabel(row_frame, text=resident['name']).grid(row=0, column=1, sticky="w", padx=5)
+            ctk.CTkLabel(row_frame, text=resident['email']).grid(row=0, column=2, sticky="w", padx=5)
+            ctk.CTkLabel(row_frame, text=resident['contact']).grid(row=0, column=3, sticky="w", padx=5)
 
 
 def show_staff_accounts_content(parent_frame):
     """Creates and displays the UI for managing staff accounts."""
-    # (Staff Accounts content function - collapsed for brevity)
-    existing_staff = [{"id": 1, "name": "Barangay Staff Admin", "username": "barangay_admin", "position": "Admin", "role": "Admin", "status": "Active"}]
+    existing_staff = get_existing_staff()
     staff_roles = ["Admin", "Staff", "Treasurer"]
-    scrollable_frame = ctk.CTkScrollableFrame(parent_frame, fg_color="transparent"); scrollable_frame.pack(fill="both", expand=True, padx=10, pady=10)
-    create_frame = ctk.CTkFrame(scrollable_frame, fg_color="white", corner_radius=5); create_frame.pack(fill="x", pady=(0, 20), padx=0)
+    scrollable_frame = ctk.CTkScrollableFrame(parent_frame, fg_color="transparent")
+    scrollable_frame.pack(fill="both", expand=True, padx=10, pady=10)
+
+    create_frame = ctk.CTkFrame(scrollable_frame, fg_color="white", corner_radius=5)
+    create_frame.pack(fill="x", pady=(0, 20), padx=0)
     ctk.CTkLabel(create_frame, text="Create New Staff Account", font=ctk.CTkFont(size=18, weight="bold"), anchor="w").pack(fill="x", padx=20, pady=(15, 10))
-    form_grid = ctk.CTkFrame(create_frame, fg_color="transparent"); form_grid.pack(fill="x", padx=20, pady=(0, 20)); form_grid.columnconfigure(0, weight=1)
+
+    form_grid = ctk.CTkFrame(create_frame, fg_color="transparent")
+    form_grid.pack(fill="x", padx=20, pady=(0, 20))
+    form_grid.columnconfigure(0, weight=1)
+
     def create_form_row(parent, label_text, widget_type="entry", options=None, show_char=None):
         ctk.CTkLabel(parent, text=label_text, font=ctk.CTkFont(size=12), anchor="w").pack(fill="x", pady=(5, 2))
-        if widget_type == "entry": entry = ctk.CTkEntry(parent, height=35, corner_radius=5, show=show_char); entry.pack(fill="x"); return entry
-        elif widget_type == "combobox": combobox = ctk.CTkComboBox(parent, height=35, corner_radius=5, values=options, state="readonly"); combobox.pack(fill="x"); combobox.set("-Select Role-"); return combobox
-    full_name_entry = create_form_row(form_grid, "Full Name"); username_entry = create_form_row(form_grid, "Username"); password_entry = create_form_row(form_grid, "Password (Temporary)", show_char="*"); position_entry = create_form_row(form_grid, "Position (Optional)"); role_combobox = create_form_row(form_grid, "Staff Role", widget_type="combobox", options=staff_roles)
+        if widget_type == "entry":
+            entry = ctk.CTkEntry(parent, height=35, corner_radius=5, show=show_char)
+            entry.pack(fill="x")
+            return entry
+        elif widget_type == "combobox":
+            combobox = ctk.CTkComboBox(parent, height=35, corner_radius=5, values=options, state="readonly")
+            combobox.pack(fill="x")
+            combobox.set("-Select Role-")
+            return combobox
+
+    full_name_entry = create_form_row(form_grid, "Full Name")
+    username_entry = create_form_row(form_grid, "Username")
+    password_entry = create_form_row(form_grid, "Password (Temporary)", show_char="*")
+    position_entry = create_form_row(form_grid, "Position (Optional)")
+    role_combobox = create_form_row(form_grid, "Staff Role", widget_type="combobox", options=staff_roles)
+
+    status_label = ctk.CTkLabel(form_grid, text="", font=ctk.CTkFont(size=12))
+    status_label.pack(pady=(5, 0))
+
     def create_account_action():
-        print(f"Creating Staff...") # Simplified action
-        full_name_entry.delete(0, 'end'); username_entry.delete(0, 'end'); password_entry.delete(0, 'end'); position_entry.delete(0, 'end'); role_combobox.set("-Select Role-")
-    create_button = ctk.CTkButton(form_grid, text="+ Create Account", height=40, font=ctk.CTkFont(weight="bold"), command=create_account_action); create_button.pack(fill="x", pady=(20, 5))
-    existing_title_text = f"Existing Staff Accounts ({len(existing_staff)})"; existing_title = ctk.CTkLabel(scrollable_frame, text=existing_title_text, font=ctk.CTkFont(size=18, weight="bold"), anchor="w"); existing_title.pack(fill="x", pady=(10, 5), padx=0)
-    existing_container = ctk.CTkFrame(scrollable_frame, fg_color="white", corner_radius=5); existing_container.pack(fill="x", pady=(0, 20), padx=0)
-    if not existing_staff: ctk.CTkLabel(existing_container, text="No existing staff accounts found.", text_color="gray", font=ctk.CTkFont(size=12)).pack(pady=20)
+        full_name = full_name_entry.get().strip()
+        username = username_entry.get().strip()
+        password = password_entry.get().strip()
+        position = position_entry.get().strip() or None
+        role = role_combobox.get()
+
+        if not full_name or not username or not password or role == "-Select Role-":
+            status_label.configure(text="Please fill in all required fields.", text_color="red")
+            return
+
+        success, message = create_staff_account(full_name, username, password, position, role)
+        if success:
+            status_label.configure(text=message, text_color="green")
+            # Clear fields
+            full_name_entry.delete(0, 'end')
+            username_entry.delete(0, 'end')
+            password_entry.delete(0, 'end')
+            position_entry.delete(0, 'end')
+            role_combobox.set("-Select Role-")
+            # Refresh the list (optional: reload the page or update existing_staff)
+        else:
+            status_label.configure(text=message, text_color="red")
+
+    create_button = ctk.CTkButton(form_grid, text="+ Create Account", height=40, font=ctk.CTkFont(weight="bold"), command=create_account_action)
+    create_button.pack(fill="x", pady=(20, 5))
+
+    existing_title_text = f"Existing Staff Accounts ({len(existing_staff)})"
+    existing_title = ctk.CTkLabel(scrollable_frame, text=existing_title_text, font=ctk.CTkFont(size=18, weight="bold"),anchor="w")
+    existing_title.pack(fill="x", pady=(10, 5), padx=0)
+
+    existing_container = ctk.CTkFrame(scrollable_frame, fg_color="white", corner_radius=5)
+    existing_container.pack(fill="x", pady=(0, 20), padx=0)
+
+    if not existing_staff:
+        ctk.CTkLabel(existing_container, text="No existing staff accounts found.", text_color="gray", font=ctk.CTkFont(size=12)).pack(pady=20)
     else:
-        header_frame_existing = ctk.CTkFrame(existing_container, fg_color="transparent", height=30); header_frame_existing.pack(fill="x", padx=10, pady=(10, 5)); header_frame_existing.grid_columnconfigure((1, 2, 3), weight=1); header_frame_existing.grid_columnconfigure((0, 4, 5, 6), weight=0)
+        header_frame_existing = ctk.CTkFrame(existing_container, fg_color="transparent", height=30)
+        header_frame_existing.pack(fill="x", padx=10, pady=(10, 5))
+        header_frame_existing.grid_columnconfigure((1, 2, 3), weight=1)
+        header_frame_existing.grid_columnconfigure((0, 4, 5, 6), weight=0)
+
         headers = ["ID", "NAME", "USERNAME", "POSITION", "ROLE", "STATUS", "ACTION"]
-        for i, header in enumerate(headers): sticky_val = "w" if i < len(headers) -1 else "e"; ctk.CTkLabel(header_frame_existing, text=header, font=ctk.CTkFont(weight="bold", size=11)).grid(row=0, column=i, sticky=sticky_val, padx=5)
+        for i, header in enumerate(headers):
+            sticky_val = "w" if i < len(headers) - 1 else "e"
+            ctk.CTkLabel(header_frame_existing, text=header, font=ctk.CTkFont(weight="bold", size=11)).grid(row=0,column=i,sticky=sticky_val,padx=5)
+
         for staff in existing_staff:
-            row_frame = ctk.CTkFrame(existing_container, fg_color="transparent", height=30); row_frame.pack(fill="x", padx=10, pady=2); row_frame.grid_columnconfigure((1, 2, 3), weight=1); row_frame.grid_columnconfigure((0, 4, 5, 6), weight=0)
-            ctk.CTkLabel(row_frame, text=f"#{staff['id']}", font=ctk.CTkFont(size=11)).grid(row=0, column=0, sticky="w", padx=5); ctk.CTkLabel(row_frame, text=staff['name'], font=ctk.CTkFont(size=11), anchor="w").grid(row=0, column=1, sticky="ew", padx=5); ctk.CTkLabel(row_frame, text=staff['username'], font=ctk.CTkFont(size=11), anchor="w").grid(row=0, column=2, sticky="ew", padx=5); ctk.CTkLabel(row_frame, text=staff['position'] or "-", font=ctk.CTkFont(size=11), anchor="w").grid(row=0, column=3, sticky="ew", padx=5)
-            role_label = ctk.CTkLabel(row_frame, text=staff['role'], font=ctk.CTkFont(size=10, weight="bold"), corner_radius=5, width=50); role_label.grid(row=0, column=4, sticky="w", padx=5); role_color = REJECT_COLOR if staff['role'].lower() == 'admin' else VIEW_COLOR; role_label.configure(fg_color=role_color, text_color="white")
-            status_label = ctk.CTkLabel(row_frame, text=staff['status'], font=ctk.CTkFont(size=10, weight="bold"), corner_radius=5, width=50); status_label.grid(row=0, column=5, sticky="w", padx=5); status_color = APPROVE_COLOR if staff['status'].lower() == 'active' else DEACTIVATE_COLOR; status_label.configure(fg_color=status_color, text_color="white")
-            action_buttons_frame = ctk.CTkFrame(row_frame, fg_color="transparent"); action_buttons_frame.grid(row=0, column=6, sticky="e")
-            def view_staff_action(staff_id): print(f"View staff {staff_id}")
-            ctk.CTkButton(action_buttons_frame, text="View", width=50, height=25, fg_color=VIEW_COLOR, font=ctk.CTkFont(size=10), command=lambda id=staff['id']: view_staff_action(id)).pack(side="left", padx=2)
+            row_frame = ctk.CTkFrame(existing_container, fg_color="transparent", height=30)
+            row_frame.pack(fill="x", padx=10, pady=2)
+            row_frame.grid_columnconfigure((1, 2, 3), weight=1)
+            row_frame.grid_columnconfigure((0, 4, 5, 6), weight=0)
+
+            ctk.CTkLabel(row_frame, text=f"#{staff['id']}", font=ctk.CTkFont(size=11)).grid(row=0, column=0, sticky="w",padx=5)
+            ctk.CTkLabel(row_frame, text=staff['name'], font=ctk.CTkFont(size=11), anchor="w").grid(row=0, column=1,sticky="ew", padx=5)
+            ctk.CTkLabel(row_frame, text=staff['username'], font=ctk.CTkFont(size=11), anchor="w").grid(row=0, column=2,sticky="ew",padx=5)
+            ctk.CTkLabel(row_frame, text=staff['position'] or "-", font=ctk.CTkFont(size=11), anchor="w").grid(row=0,column=3,sticky="ew",padx=5)
+
+            role_label = ctk.CTkLabel(row_frame, text=staff['role'], font=ctk.CTkFont(size=10, weight="bold"), corner_radius=5, width=50)
+            role_label.grid(row=0, column=4, sticky="w", padx=5)
+            role_color = REJECT_COLOR if staff['role'].lower() == 'admin' else VIEW_COLOR
+            role_label.configure(fg_color=role_color, text_color="white")
+
+            status_label = ctk.CTkLabel(row_frame, text=staff['status'], font=ctk.CTkFont(size=10, weight="bold"), corner_radius=5, width=50)
+            status_label.grid(row=0, column=5, sticky="w", padx=5)
+            status_color = APPROVE_COLOR if staff['status'].lower() == 'active' else DEACTIVATE_COLOR
+            status_label.configure(fg_color=status_color, text_color="white")
+
+            action_buttons_frame = ctk.CTkFrame(row_frame, fg_color="transparent")
+            action_buttons_frame.grid(row=0, column=6, sticky="e")
+
+            def view_staff_action(staff_id):
+                print(f"View staff {staff_id}")
+
+            ctk.CTkButton(action_buttons_frame, text="View", width=50, height=25, fg_color=VIEW_COLOR,
+                          font=ctk.CTkFont(size=10), command=lambda id=staff['id']: view_staff_action(id)).pack(
+                side="left", padx=2)
 
 
 def show_system_settings_content(parent_frame):

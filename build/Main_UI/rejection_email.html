@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    .container {
+      border: 1px solid #ddd;
+      padding: 20px;
+      font-family: Arial, sans-serif;
+    }
+    .header {
+      background-color: #3498DB;  /* Blue theme */
+      color: white;
+      padding: 10px;
+      text-align: center;
+      font-size: 1.5em;
+    }
+    .body {
+      margin-top: 20px;
+      font-size: 1.1em;
+    }
+    .reason {
+      font-size: 1.2em;
+      color: #333;
+      margin: 10px 0;
+      background-color: #f9f9f9;
+      padding: 10px;
+      border-left: 4px solid #3498DB;  /* Blue accent */
+    }
+    .footer {
+      margin-top: 30px;
+      font-size: 0.9em;
+      color: #888;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">Account Registration Rejected</div>
+    <div class="body">
+      We regret to inform you that your account registration has been rejected.
+      <div class="reason">Reason: {{ reason }}</div>
+      Please contact support for more information or to reapply.
+    </div>
+    <div class="footer">
+      If you believe this is an error, please reach out to barangaypoblacion2eservice@gmail.com.
+    </div>
+  </div>
+</body>
+</html>
