@@ -315,64 +315,200 @@ def create_services_page(parent_frame):
 
 
 def create_profile_page(parent_frame):
-    """Creates the profile page with data from the database."""
+    """Creates the profile page with data display and additional info inputs."""
     global current_username
     if not current_username:
         ctk.CTkLabel(parent_frame, text="Please log in first.", text_color="red").pack(pady=20)
         return
 
-    user = get_current_user_data(current_username)
+    user = get_current_user_data(current_username) # Fetch minimal data initially
     if not user:
         ctk.CTkLabel(parent_frame, text="Error loading profile data.", text_color="red").pack(pady=20)
         return
 
-    new_picture_path = {"path": user.get("profile_picture_path")}
-    profile_frame = ctk.CTkFrame(parent_frame, fg_color="transparent")
-    profile_frame.pack(fill="both", expand=True, padx=50, pady=30)
-    title_label = ctk.CTkLabel(profile_frame, text="User Profile", font=ctk.CTkFont(size=24, weight="bold"))
-    pfp_frame = ctk.CTkFrame(profile_frame, fg_color="#f0f0f0", width=200, height=200, corner_radius=10)
-    pfp_label = ctk.CTkLabel(pfp_frame, text="", font=ctk.CTkFont(size=14), text_color="gray")
-    upload_btn = ctk.CTkButton(profile_frame, text="Upload Picture")
-    details_frame = ctk.CTkFrame(profile_frame, fg_color="transparent")
-    save_btn = ctk.CTkButton(profile_frame, text="Save Profile")
-    status_label = ctk.CTkLabel(profile_frame, text="")
-    title_label.pack(anchor="w", pady=(0, 20))
-    pfp_frame.pack(anchor="w", pady=(0, 20))
-    pfp_frame.pack_propagate(False)
-    pfp_label.pack(expand=True)
-    upload_btn.pack(anchor="w", pady=(0, 30))
-    details_frame.pack(fill="x", anchor="w")
-    save_btn.pack(anchor="w", pady=(20, 10))
-    status_label.pack(anchor="w")
+    # --- Fetch FULL data including additional fields ---
+    # You might want a separate function or modify get_current_user_data
+    # For now, we'll assume 'user' dictionary might contain these keys or they are empty
+    # user = get_current_user_data_full(current_username) # Use this if you have it
 
+    new_picture_path = {"path": user.get("profile_picture_path")}
+
+    # --- Main container frame ---
+    profile_frame = ctk.CTkFrame(parent_frame, fg_color="transparent")
+    profile_scrollable = ctk.CTkScrollableFrame(profile_frame, fg_color="transparent") # Make content scrollable
+    profile_scrollable.pack(fill="both", expand=True)
+    profile_frame.pack(fill="both", expand=True, padx=50, pady=30)
+
+    # Configure grid layout within the scrollable frame
+    profile_scrollable.grid_columnconfigure(1, weight=1) # Make right column expandable
+
+    # --- Title ---
+    title_label = ctk.CTkLabel(profile_scrollable, text="User Profile", font=ctk.CTkFont(size=24, weight="bold"))
+    title_label.grid(row=0, column=0, columnspan=2, sticky="w", pady=(0, 20))
+
+    # --- Left Column: Profile Picture ---
+    pfp_container = ctk.CTkFrame(profile_scrollable, fg_color="transparent")
+    pfp_container.grid(row=1, column=0, sticky="nw", padx=(0, 30))
+    pfp_frame = ctk.CTkFrame(pfp_container, fg_color="#f0f0f0", width=200, height=200, corner_radius=10)
+    pfp_frame.pack(pady=(0, 10)); pfp_frame.pack_propagate(False)
+    pfp_label = ctk.CTkLabel(pfp_frame, text="", font=ctk.CTkFont(size=14), text_color="gray"); pfp_label.pack(expand=True)
+    upload_btn = ctk.CTkButton(pfp_container, text="Upload Picture"); upload_btn.pack(fill="x") # Always enabled
+
+    # --- Right Column: User Details ---
+    details_frame = ctk.CTkFrame(profile_scrollable, fg_color="transparent")
+    details_frame.grid(row=1, column=1, sticky="nsew"); details_frame.grid_columnconfigure(1, weight=1)
+
+    current_row = 0 # Keep track of the grid row
+
+    # --- Display Existing Info (Labels) ---
+    ctk.CTkLabel(details_frame, text="First Name:", font=ctk.CTkFont(size=14, weight="bold")).grid(row=current_row, column=0, sticky="w", padx=(0, 10), pady=5)
+    ctk.CTkLabel(details_frame, text=user.get("firstname", "N/A"), font=ctk.CTkFont(size=14)).grid(row=current_row, column=1, sticky="w", pady=5)
+    current_row += 1
+
+    ctk.CTkLabel(details_frame, text="Last Name:", font=ctk.CTkFont(size=14, weight="bold")).grid(row=current_row, column=0, sticky="w", padx=(0, 10), pady=10)
+    ctk.CTkLabel(details_frame, text=user.get("lastname", "N/A"), font=ctk.CTkFont(size=14)).grid(row=current_row, column=1, sticky="w", pady=10)
+    current_row += 1
+
+    # --- Add Separator and Title for Additional Info ---
+    separator = ctk.CTkFrame(details_frame, height=2, fg_color="#E0E0E0")
+    separator.grid(row=current_row, column=0, columnspan=2, sticky="ew", pady=(20, 10)); current_row += 1
+    add_info_label = ctk.CTkLabel(details_frame, text="Additional Information (Required for Verification)", font=ctk.CTkFont(size=16, weight="bold"), anchor="w")
+    add_info_label.grid(row=current_row, column=0, columnspan=2, sticky="ew", pady=(0, 15)); current_row += 1
+
+    # --- Additional Information Input Fields ---
+
+    # Date of Birth (Entry)
+    ctk.CTkLabel(details_frame, text="Date of Birth (YYYY-MM-DD):", font=ctk.CTkFont(size=14, weight="bold"), anchor="w").grid(row=current_row, column=0, sticky="w", padx=(0, 10), pady=5)
+    dob_entry = ctk.CTkEntry(details_frame, placeholder_text="YYYY-MM-DD", font=ctk.CTkFont(size=14), corner_radius=5)
+    dob_entry.grid(row=current_row, column=1, sticky="ew", pady=5)
+    # dob_entry.insert(0, user.get("dob", "")) # Pre-fill if needed
+    current_row += 1
+
+    # Place of Birth (Entry)
+    ctk.CTkLabel(details_frame, text="Place of Birth:", font=ctk.CTkFont(size=14, weight="bold"), anchor="w").grid(row=current_row, column=0, sticky="w", padx=(0, 10), pady=5)
+    pob_entry = ctk.CTkEntry(details_frame, font=ctk.CTkFont(size=14), corner_radius=5)
+    pob_entry.grid(row=current_row, column=1, sticky="ew", pady=5)
+    # pob_entry.insert(0, user.get("place_of_birth", "")) # Pre-fill if needed
+    current_row += 1
+
+    # Age (Combobox) - Example: 18-100
+    age_options = ["-Select Age-"] + [str(i) for i in range(18, 101)]
+    ctk.CTkLabel(details_frame, text="Age:", font=ctk.CTkFont(size=14, weight="bold"), anchor="w").grid(row=current_row, column=0, sticky="w", padx=(0, 10), pady=5)
+    age_combobox = ctk.CTkComboBox(details_frame, font=ctk.CTkFont(size=14), corner_radius=5, values=age_options, state="readonly")
+    age_combobox.set(age_options[0]) # Set default prompt
+
+    # Consider pre-selecting based on DOB calculation if possible
+    age_combobox.grid(row=current_row, column=1, sticky="ew", pady=5)
+    current_row += 1
+
+    # Civil Status (Combobox)
+    civil_status_options = ["-Select-", "Single", "Married", "Widowed", "Separated"]
+    ctk.CTkLabel(details_frame, text="Civil Status:", font=ctk.CTkFont(size=14, weight="bold"), anchor="w").grid(row=current_row, column=0, sticky="w", padx=(0, 10), pady=5)
+    civil_status_combobox = ctk.CTkComboBox(details_frame, font=ctk.CTkFont(size=14), corner_radius=5, values=civil_status_options, state="readonly")
+    civil_status_combobox.set(civil_status_options[0]) # Set default prompt
+    # current_value = user.get("civil_status", "")
+    # if current_value in civil_status_options: civil_status_combobox.set(current_value) # Pre-fill if needed
+    civil_status_combobox.grid(row=current_row, column=1, sticky="ew", pady=5)
+    current_row += 1
+
+    # Gender (Combobox)
+    gender_options = ["-Select-", "Male", "Female", "Other", "Prefer not to say"]
+    ctk.CTkLabel(details_frame, text="Gender:", font=ctk.CTkFont(size=14, weight="bold"), anchor="w").grid(row=current_row, column=0, sticky="w", padx=(0, 10), pady=5)
+    gender_combobox = ctk.CTkComboBox(details_frame, font=ctk.CTkFont(size=14), corner_radius=5, values=gender_options, state="readonly")
+    gender_combobox.set(gender_options[0]) # Set default prompt
+    # current_value = user.get("gender", "")
+    # if current_value in gender_options: gender_combobox.set(current_value) # Pre-fill if needed
+    gender_combobox.grid(row=current_row, column=1, sticky="ew", pady=5)
+    current_row += 1
+
+
+    # --- Status Label ---
+    status_label = ctk.CTkLabel(details_frame, text="", font=ctk.CTkFont(size=12));
+    status_label.grid(row=current_row, column=0, columnspan=2, sticky="w", pady=(10, 5)); current_row += 1
+
+    # --- Submit Button ---
+    def submit_information():
+        # --- Placeholder Action ---
+        dob = dob_entry.get()
+        pob = pob_entry.get()
+        age = age_combobox.get()
+        civil_status = civil_status_combobox.get()
+        gender = gender_combobox.get()
+
+        print("\n--- Additional Information Submitted ---")
+        print(f"DOB: {dob}")
+        print(f"Place of Birth: {pob}")
+        print(f"Age: {age}")
+        print(f"Civil Status: {civil_status}")
+        print(f"Gender: {gender}")
+        print("--------------------------------------")
+
+        # Add validation here
+        if not dob.strip() or not pob.strip() or age == "-Select Age-" or civil_status == "-Select-" or gender == "-Select-":
+            status_label.configure(text="Error: Please fill all additional information fields.", text_color="red")
+            return
+
+        # --- Backend Call Placeholder ---
+        # updated_data = { ... include these fields ... }
+        # success = save_user_profile_data_full(updated_data) # Call your save function
+        success = True # Simulate success for now
+        # --- ------------------------ ---
+
+        if success:
+            status_label.configure(text="Information submitted successfully!", text_color="green");
+            status_label.after(3000, lambda: status_label.configure(text=""))
+            # Optionally disable fields after submission?
+            # dob_entry.configure(state="disabled")
+            # ... disable others ...
+            # submit_info_btn.configure(state="disabled", text="Information Submitted")
+        else:
+            status_label.configure(text="Error: Could not submit information.", text_color="red");
+            status_label.after(5000, lambda: status_label.configure(text=""))
+
+    submit_info_btn = ctk.CTkButton(details_frame, text="Verify Account", command=submit_information)
+    submit_info_btn.grid(row=current_row, column=0, columnspan=2, sticky="w", pady=(20, 0)); current_row += 1
+
+    # --- Functions for Image Upload and Original Save Profile (if still needed) ---
     def display_image(image_path):
         if image_path and os.path.exists(image_path):
-            try:
-                img = Image.open(image_path)
-                ctk_img = ctk.CTkImage(light_image=img, size=(200, 200))
-                pfp_label.configure(image=ctk_img, text="")
-                pfp_label.image = ctk_img
-            except Exception as e:
-                pfp_label.configure(image=None, text=f"Error:\n{e}")
-        else:
-            pfp_label.configure(image=None, text="No Image")
+            try: img = Image.open(image_path); ctk_img = ctk.CTkImage(light_image=img, size=(200, 200)); pfp_label.configure(image=ctk_img, text=""); pfp_label.image = ctk_img
+            except Exception as e: pfp_label.configure(image=None, text=f"Error:\n{e}")
+        else: pfp_label.configure(image=None, text="No Image")
 
     def upload_picture():
-        filepath = filedialog.askopenfilename(title="Select a Profile Picture",
-                                              filetypes=(("Image Files", "*.png *.jpg *.jpeg"),))
-        if filepath: new_picture_path["path"] = filepath; display_image(filepath)
+        filepath = filedialog.askopenfilename(title="Select Profile Picture", filetypes=(("Image Files", "*.png *.jpg *.jpeg"),))
+        if filepath:
+             new_picture_path["path"] = filepath
+             display_image(filepath)
+             # Automatically save JUST the picture path when uploaded
+             save_picture_only(filepath)
 
-    def save_profile():
-        fname, lname = user.get("firstname", "N/A"), user.get("lastname", "N/A")
-        if save_user_profile_data(fname, lname, new_picture_path["path"]):
-            status_label.configure(text="Profile saved successfully!", text_color="green")
-            status_label.after(3000, lambda: status_label.configure(text=""))
-        else:
-            status_label.configure(text="Error: Could not save profile.", text_color="red")
-            status_label.after(3000, lambda: status_label.configure(text=""))
+    def save_picture_only(picture_path):
+         """Saves only the profile picture path."""
+         global current_username
+         user_data = get_current_user_data(current_username) # Get current ID etc.
+         if not user_data:
+             status_label.configure(text="Error fetching user data for picture save.", text_color="red")
+             return
 
-    upload_btn.configure(command=upload_picture)
-    save_btn.configure(command=save_profile)
+         update_data = {"id": user_data.get("id"), "profile_picture_path": picture_path}
+
+         # Modify save_user_profile_data_full or create a new DB function
+         # that ONLY updates the picture path. For simulation, we reuse:
+         temp_full_data = user_data.copy()
+         temp_full_data["profile_picture_path"] = picture_path
+
+         if save_user_profile_data(temp_full_data): # Simulate saving just the pic path
+             status_label.configure(text="Picture Updated!", text_color="green")
+             status_label.after(3000, lambda: status_label.configure(text=""))
+         else:
+             status_label.configure(text="Error saving picture.", text_color="red")
+             status_label.after(3000, lambda: status_label.configure(text=""))
+
+
+    # --- Initial Setup ---
+    upload_btn.configure(command=upload_picture) # Always enabled
+    # save_btn removed (replaced by submit_info_btn)
     display_image(new_picture_path["path"])
     ctk.CTkLabel(details_frame, text="First Name:", font=ctk.CTkFont(size=14, weight="bold")).grid(row=0, column=0,
                                                                                                    sticky="w",
