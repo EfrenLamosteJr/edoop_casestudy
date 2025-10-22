@@ -1,8 +1,7 @@
 # Admin_Dashboard_GUI.py
 import customtkinter as ctk
 from database_connector import get_connection
-from auth import create_staff_account, update_resident_status, send_rejection_email, send_approval_email
-# --- Color Palette ---
+from auth import create_staff_account, send_rejection_email, send_approval_email, approve_verification_request, reject_verification_request
 SIDEBAR_BG = "#3498db"
 SIDEBAR_BTN_HOVER = "#2980b9"
 ACTIVE_BTN_BG = "#ffffff"
@@ -17,21 +16,6 @@ DEACTIVATE_COLOR = "#95A5A6" # Gray
 
 # Global dictionary to hold references to sidebar buttons
 button_widgets = {}
-# --- Database Functions ---
-def get_pending_requests_count():
-    conn = get_connection()
-    cur = conn.cursor()
-    try:
-        cur.execute("SELECT COUNT(*) FROM document_requests WHERE status = 'Pending'")
-        row = cur.fetchone()
-        return row[0] if row else 0
-    except Exception as error:
-        print(f"Error fetching pending requests count: {error}")
-        return 0
-    finally:
-        cur.close()
-        conn.close()
-
 
 def get_total_residents_count():
     conn = get_connection()
@@ -97,20 +81,20 @@ def get_pending_residents():
         cur.close()
         conn.close()
 
-def get_approved_residents():
-    """Fetch all approved residents."""
+def get_pending_requests_count():
     conn = get_connection()
     cur = conn.cursor()
     try:
-        cur.execute("SELECT id, firstname, lastname, email, co_number FROM resident WHERE status = 'approved'")
-        rows = cur.fetchall()
-        return [{"id": row[0], "name": f"{row[1]} {row[2]}", "email": row[3], "contact": row[4]} for row in rows]
+        cur.execute("SELECT COUNT(*) FROM document_requests WHERE status = 'Pending'")
+        row = cur.fetchone()
+        return row[0] if row else 0
     except Exception as error:
-        print(f"Error fetching approved residents: {error}")
-        return []
+        print(f"Error fetching pending requests count: {error}")
+        return 0
     finally:
         cur.close()
         conn.close()
+
 
 # --- Content Creation Functions for Each Page ---
 def show_dashboard_content(parent_frame):
@@ -214,7 +198,7 @@ def show_request_management_content(parent_frame):
                           font=ctk.CTkFont(size=10), command=lambda id=request['id']: reject_action(id)).pack(side="left", padx=2)
 
 def show_resident_accounts_content(parent_frame):
-    """Creates and displays the UI for managing resident accounts."""
+    """Creates and displays the UI for managing resident accounts, including verification requests."""
 
     def refresh_content():
         # Clear and reload the content
@@ -222,13 +206,43 @@ def show_resident_accounts_content(parent_frame):
             widget.destroy()
         show_resident_accounts_content(parent_frame)
 
-    pending_residents = get_pending_residents()
+    # Fetch residents with pending verification (not initial approval)
+    def get_pending_verification_residents():
+        conn = get_connection()
+        cur = conn.cursor()
+        try:
+            cur.execute("SELECT id, firstname, lastname, email FROM resident WHERE verification_status = 'pending'")
+            rows = cur.fetchall()
+            return [{"id": row[0], "name": f"{row[1]} {row[2]}", "email": row[3]} for row in rows]
+        except Exception as error:
+            print(f"Error fetching pending verification residents: {error}")
+            return []
+        finally:
+            cur.close()
+            conn.close()
+
+    # Fetch approved residents (for display)
+    def get_approved_residents():
+        conn = get_connection()
+        cur = conn.cursor()
+        try:
+            cur.execute("SELECT id, firstname, lastname, email FROM resident WHERE verification_status = 'approved'")
+            rows = cur.fetchall()
+            return [{"id": row[0], "name": f"{row[1]} {row[2]}", "email": row[3]} for row in rows]
+        except Exception as error:
+            print(f"Error fetching approved residents: {error}")
+            return []
+        finally:
+            cur.close()
+            conn.close()
+
+    pending_residents = get_pending_verification_residents()
     approved_residents = get_approved_residents()
 
     scrollable_frame = ctk.CTkScrollableFrame(parent_frame, fg_color="transparent")
     scrollable_frame.pack(fill="both", expand=True)
 
-    pending_title_text = f"New Registrations Pending Approval ({len(pending_residents)})"
+    pending_title_text = f"Pending Verification Requests ({len(pending_residents)})"
     pending_title = ctk.CTkLabel(scrollable_frame, text=pending_title_text, font=ctk.CTkFont(size=18, weight="bold"),
                                  anchor="w")
     pending_title.pack(fill="x", pady=(10, 5), padx=10)
@@ -237,13 +251,13 @@ def show_resident_accounts_content(parent_frame):
     pending_container.pack(fill="x", pady=(0, 20), padx=10)
 
     if not pending_residents:
-        ctk.CTkLabel(pending_container, text="No pending registrations.", text_color="gray",
+        ctk.CTkLabel(pending_container, text="No pending verification requests.", text_color="gray",
                      font=ctk.CTkFont(size=12)).pack(pady=20)
     else:
         header_frame_pending = ctk.CTkFrame(pending_container, fg_color="transparent")
         header_frame_pending.pack(fill="x", padx=10, pady=(10, 5))
-        header_frame_pending.grid_columnconfigure((1, 2, 3), weight=1)
-        header_frame_pending.grid_columnconfigure(4, weight=0)
+        header_frame_pending.grid_columnconfigure((1, 2), weight=1)
+        header_frame_pending.grid_columnconfigure(3, weight=0)
 
         ctk.CTkLabel(header_frame_pending, text="ID", font=ctk.CTkFont(weight="bold")).grid(row=0, column=0, sticky="w",
                                                                                             padx=5)
@@ -251,42 +265,49 @@ def show_resident_accounts_content(parent_frame):
                                                                                               sticky="w", padx=5)
         ctk.CTkLabel(header_frame_pending, text="EMAIL", font=ctk.CTkFont(weight="bold")).grid(row=0, column=2,
                                                                                                sticky="w", padx=5)
-        ctk.CTkLabel(header_frame_pending, text="CONTACT NO.", font=ctk.CTkFont(weight="bold")).grid(row=0, column=3,
-                                                                                                     sticky="w", padx=5)
-        ctk.CTkLabel(header_frame_pending, text="ACTION", font=ctk.CTkFont(weight="bold")).grid(row=0, column=4,
+        ctk.CTkLabel(header_frame_pending, text="ACTION", font=ctk.CTkFont(weight="bold")).grid(row=0, column=3,
                                                                                                 sticky="e", padx=5)
 
         for resident in pending_residents:
             row_frame = ctk.CTkFrame(pending_container, fg_color="transparent")
             row_frame.pack(fill="x", padx=10, pady=5)
-            row_frame.grid_columnconfigure((1, 2, 3), weight=1)
-            row_frame.grid_columnconfigure(4, weight=0)
+            row_frame.grid_columnconfigure((1, 2), weight=1)
+            row_frame.grid_columnconfigure(3, weight=0)
 
             ctk.CTkLabel(row_frame, text=f"#{resident['id']}").grid(row=0, column=0, sticky="w", padx=5)
             ctk.CTkLabel(row_frame, text=resident['name']).grid(row=0, column=1, sticky="w", padx=5)
             ctk.CTkLabel(row_frame, text=resident['email']).grid(row=0, column=2, sticky="w", padx=5)
-            ctk.CTkLabel(row_frame, text=resident['contact']).grid(row=0, column=3, sticky="w", padx=5)
 
             action_buttons_frame = ctk.CTkFrame(row_frame, fg_color="transparent")
-            action_buttons_frame.grid(row=0, column=4, sticky="e")
+            action_buttons_frame.grid(row=0, column=3, sticky="e")
 
             def view_action(res_id):
-                print(f"View resident {res_id}")
+                # Fetch and display verification info in a popup
+                user_data = get_full_user_data_by_id(res_id)  # Need a helper function
+                if user_data:
+                    info = f"Name: {user_data['firstname']} {user_data['lastname']}\nDOB: {user_data['dob'] or 'N/A'}\nPlace of Birth: {user_data['place_of_birth'] or 'N/A'}\nAge: {user_data['age'] or 'N/A'}\nCivil Status: {user_data['civil_status'] or 'N/A'}\nGender: {user_data['gender'] or 'N/A'}"
+                    popup = ctk.CTkToplevel(parent_frame)
+                    popup.title("Verification Info")
+                    popup.geometry("400x300")
+                    ctk.CTkLabel(popup, text=info, font=ctk.CTkFont(size=12)).pack(pady=20, padx=20)
+                    ctk.CTkButton(popup, text="Close", command=popup.destroy).pack(pady=10)
+                else:
+                    print("No verification data found")
 
             def approve_action(res_id, email):
-                if update_resident_status(res_id, 'approved'):
-                    if send_approval_email(email):
-                        print(f"Approved resident {res_id} and emailed {email}")
+                if approve_verification_request(res_id):
+                    if send_approval_email(email):  # Send verification approval email
+                        print(f"Approved verification for {res_id} and emailed {email}")
                     else:
-                        print(f"Approved resident {res_id} but failed to send email")
+                        print(f"Approved verification for {res_id} but failed to send email")
                     refresh_content()
                 else:
-                    print(f"Failed to approve resident {res_id}")
+                    print(f"Failed to approve verification for {res_id}")
 
             def reject_action(res_id, email):
-                # Create rejection popup
+                # Create rejection popup for reason
                 popup = ctk.CTkToplevel(parent_frame)
-                popup.title("Reject Resident")
+                popup.title("Reject Verification")
                 popup.geometry("400x300")
                 popup.transient(parent_frame)
                 popup.grab_set()
@@ -300,12 +321,14 @@ def show_resident_accounts_content(parent_frame):
                     if not reason:
                         ctk.CTkLabel(popup, text="Please enter a reason.", text_color="red").pack(pady=10)
                         return
-                    if send_rejection_email(email, reason):
-                        print(f"Rejected resident {res_id} and emailed {email}")
-                        # Keep as pending, just refresh
+                    if reject_verification_request(res_id):
+                        if send_rejection_email(email, reason):  # Send rejection email with reason
+                            print(f"Rejected verification for {res_id} and emailed {email}")
+                        else:
+                            print(f"Rejected verification for {res_id} but failed to send email")
                         refresh_content()
                     else:
-                        print(f"Failed to send email for resident {res_id}")
+                        print(f"Failed to reject verification for {res_id}")
                     popup.destroy()
 
                 ctk.CTkButton(popup, text="Send Rejection", command=send_reject).pack(pady=10)
@@ -321,7 +344,7 @@ def show_resident_accounts_content(parent_frame):
                           command=lambda id=resident['id'], email=resident['email']: reject_action(id, email)).pack(
                 side="left", padx=2)
 
-    approved_title_text = f"All Approved Resident Accounts ({len(approved_residents)})"
+    approved_title_text = f"Verified Residents ({len(approved_residents)})"
     approved_title = ctk.CTkLabel(scrollable_frame, text=approved_title_text, font=ctk.CTkFont(size=18, weight="bold"),
                                   anchor="w")
     approved_title.pack(fill="x", pady=(20, 5), padx=10)
@@ -330,28 +353,51 @@ def show_resident_accounts_content(parent_frame):
     approved_container.pack(fill="x", pady=(0, 20), padx=10)
 
     if not approved_residents:
-        ctk.CTkLabel(approved_container, text="No approved residents found.", text_color="gray",
+        ctk.CTkLabel(approved_container, text="No verified residents found.", text_color="gray",
                      font=ctk.CTkFont(size=12)).pack(pady=20)
     else:
         header_frame_approved = ctk.CTkFrame(approved_container, fg_color="transparent")
         header_frame_approved.pack(fill="x", padx=10, pady=(10, 5))
-        header_frame_approved.grid_columnconfigure((1, 2, 3), weight=1)
+        header_frame_approved.grid_columnconfigure((1, 2), weight=1)
 
-        ctk.CTkLabel(header_frame_approved, text="ID", font=ctk.CTkFont(weight="bold")).grid(row=0, column=0,sticky="w", padx=5)
-        ctk.CTkLabel(header_frame_approved, text="NAME", font=ctk.CTkFont(weight="bold")).grid(row=0, column=1,sticky="w", padx=5)
-        ctk.CTkLabel(header_frame_approved, text="EMAIL", font=ctk.CTkFont(weight="bold")).grid(row=0, column=2,sticky="w", padx=5)
-        ctk.CTkLabel(header_frame_approved, text="CONTACT NO.", font=ctk.CTkFont(weight="bold")).grid(row=0, column=3, sticky="w", padx=5)
+        ctk.CTkLabel(header_frame_approved, text="ID", font=ctk.CTkFont(weight="bold")).grid(row=0, column=0,
+                                                                                             sticky="w", padx=5)
+        ctk.CTkLabel(header_frame_approved, text="NAME", font=ctk.CTkFont(weight="bold")).grid(row=0, column=1,
+                                                                                               sticky="w", padx=5)
+        ctk.CTkLabel(header_frame_approved, text="EMAIL", font=ctk.CTkFont(weight="bold")).grid(row=0, column=2,
+                                                                                                sticky="w", padx=5)
 
         for resident in approved_residents:
             row_frame = ctk.CTkFrame(approved_container, fg_color="transparent")
             row_frame.pack(fill="x", padx=10, pady=5)
-            row_frame.grid_columnconfigure((1, 2, 3), weight=1)
+            row_frame.grid_columnconfigure((1, 2), weight=1)
 
             ctk.CTkLabel(row_frame, text=f"#{resident['id']}").grid(row=0, column=0, sticky="w", padx=5)
             ctk.CTkLabel(row_frame, text=resident['name']).grid(row=0, column=1, sticky="w", padx=5)
             ctk.CTkLabel(row_frame, text=resident['email']).grid(row=0, column=2, sticky="w", padx=5)
-            ctk.CTkLabel(row_frame, text=resident['contact']).grid(row=0, column=3, sticky="w", padx=5)
 
+# Helper function to get user data by ID (add this inside the function or globally)
+def get_full_user_data_by_id(resident_id):
+    conn = get_connection()
+    cur = conn.cursor()
+    try:
+        cur.execute("""
+            SELECT firstname, lastname, dob, place_of_birth, age, civil_status, gender
+            FROM resident WHERE id = %s
+        """, (resident_id,))
+        row = cur.fetchone()
+        if row:
+            return {
+                "firstname": row[0], "lastname": row[1], "dob": row[2], "place_of_birth": row[3],
+                "age": row[4], "civil_status": row[5], "gender": row[6]
+            }
+        return None
+    except Exception as error:
+        print(f"Error fetching user data by ID: {error}")
+        return None
+    finally:
+        cur.close()
+        conn.close()
 
 def show_staff_accounts_content(parent_frame):
     """Creates and displays the UI for managing staff accounts."""

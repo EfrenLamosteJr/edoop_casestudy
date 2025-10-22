@@ -2,12 +2,12 @@ import bcrypt
 from database_connector import get_connection
 import smtplib
 from email.message import EmailMessage
+
 # -------------------- SIGN UP --------------------
 def signup(firstname, lastname, username, co_number, email, barangay_address, password):
     conn = get_connection()
     cur = conn.cursor()
 
-    # Hash the password for security
     hashed = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
 
     try:
@@ -69,25 +69,6 @@ def forgotpassword(register_email, new_password):
         cur.close()
         conn.close()
 
-# -------------------- UPDATE USER PROFILE --------------------
-def update_user_profile_by_username(username, firstname, lastname, profile_picture_path):
-    """Update user profile data by username."""
-    conn = get_connection()
-    cur = conn.cursor()
-    try:
-        cur.execute("""
-            UPDATE resident
-            SET firstname = %s, lastname = %s, profile_picture_path = %s
-            WHERE username = %s
-        """, (firstname, lastname, profile_picture_path, username))
-        conn.commit()
-        return True, "Profile updated successfully."
-    except Exception as error:
-        return False, f"Error: {error}"
-    finally:
-        cur.close()
-        conn.close()
-
 # -------------------- INSERT DOCUMENT REQUEST --------------------
 def insert_document_request(user_id, document_name, valid_id_path=None, prof_of_payment_path=None):
     """Insert a new document request into the database."""
@@ -107,17 +88,25 @@ def insert_document_request(user_id, document_name, valid_id_path=None, prof_of_
         cur.close()
         conn.close()
 
-# -------------------- GET USER ID BY USERNAME --------------------
-def get_user_id_by_username(username):
-    """Fetch user ID by username."""
+# -------------------- GET FULL USER DATA --------------------
+def get_full_user_data(username):
+    """Fetch full user data including verification fields."""
     conn = get_connection()
     cur = conn.cursor()
     try:
-        cur.execute("SELECT id FROM resident WHERE username = %s", (username,))
+        cur.execute("""
+            SELECT id, firstname, lastname, email, profile_picture_path, dob, place_of_birth, age, civil_status, gender, verification_status
+            FROM resident WHERE username = %s
+        """, (username,))
         row = cur.fetchone()
-        return row[0] if row else None
+        if row:
+            return {
+                "id": row[0], "firstname": row[1], "lastname": row[2], "email": row[3], "profile_picture_path": row[4],
+                "dob": row[5], "place_of_birth": row[6], "age": row[7], "civil_status": row[8], "gender": row[9], "verification_status": row[10]
+            }
+        return None
     except Exception as error:
-        print(f"Error fetching user ID: {error}")
+        print(f"Error fetching full user data: {error}")
         return None
     finally:
         cur.close()
@@ -140,24 +129,6 @@ def create_staff_account(full_name, username, password, position, role):
     finally:
         cur.close()
         conn.close()
-
-
-# -------------------- UPDATE RESIDENT STATUS --------------------
-def update_resident_status(resident_id, status):
-    """Update the status of a resident."""
-    conn = get_connection()
-    cur = conn.cursor()
-    try:
-        cur.execute("UPDATE resident SET status = %s WHERE id = %s", (status, resident_id))
-        conn.commit()
-        return True
-    except Exception as error:
-        print(f"Error updating status: {error}")
-        return False
-    finally:
-        cur.close()
-        conn.close()
-
 
 # -------------------- SEND REJECTION EMAIL --------------------
 def send_rejection_email(to_email, reason):
@@ -188,7 +159,6 @@ def send_rejection_email(to_email, reason):
         print(f"Error sending email: {error}")
         return False
 
-
 # -------------------- SEND APPROVAL EMAIL --------------------
 def send_approval_email(to_email):
     """Send an approval email using HTML template."""
@@ -216,3 +186,134 @@ def send_approval_email(to_email):
     except Exception as error:
         print(f"Error sending approval email: {error}")
         return False
+
+# -------------------- SUBMIT VERIFICATION REQUEST --------------------
+def submit_verification_request(username, dob, place_of_birth, age, civil_status, gender):
+    """Submit verification request and update status to 'pending'."""
+    conn = get_connection()
+    cur = conn.cursor()
+    try:
+        cur.execute("""
+            UPDATE resident 
+            SET dob = %s, place_of_birth = %s, age = %s, civil_status = %s, gender = %s, verification_status = 'pending'
+            WHERE username = %s
+        """, (dob, place_of_birth, age, civil_status, gender, username))
+        conn.commit()
+        return True
+    except Exception as error:
+        print(f"Error submitting verification: {error}")
+        return False
+    finally:
+        cur.close()
+        conn.close()
+
+# -------------------- REJECT VERIFICATION REQUEST --------------------
+def reject_verification_request(resident_id):
+    """Reject verification: Clear data and set status to 'not_verified'."""
+    conn = get_connection()
+    cur = conn.cursor()
+    try:
+        cur.execute("""
+            UPDATE resident 
+            SET dob = NULL, place_of_birth = NULL, age = NULL, civil_status = NULL, gender = NULL, verification_status = 'not_verified'
+            WHERE id = %s
+        """, (resident_id,))
+        conn.commit()
+        return True
+    except Exception as error:
+        print(f"Error rejecting verification: {error}")
+        return False
+    finally:
+        cur.close()
+        conn.close()
+
+# -------------------- APPROVE VERIFICATION REQUEST --------------------
+def approve_verification_request(resident_id):
+    """Approve verification: Set status to 'approved'."""
+    conn = get_connection()
+    cur = conn.cursor()
+    try:
+        cur.execute("UPDATE resident SET verification_status = 'approved' WHERE id = %s", (resident_id,))
+        conn.commit()
+        return True
+    except Exception as error:
+        print(f"Error approving verification: {error}")
+        return False
+    finally:
+        cur.close()
+        conn.close()
+
+# -------------------- GET USER ID BY USERNAME --------------------
+def get_user_id_by_username(username):
+    """Fetch user ID by username."""
+    conn = get_connection()
+    cur = conn.cursor()
+    try:
+        cur.execute("SELECT id FROM resident WHERE username = %s", (username,))
+        row = cur.fetchone()
+        return row[0] if row else None
+    except Exception as error:
+        print(f"Error fetching user ID: {error}")
+        return None
+    finally:
+        cur.close()
+        conn.close()
+
+# -------------------- UPDATE USER PROFILE --------------------
+def update_user_profile_by_username(username, firstname, lastname, profile_picture_path):
+    """Update user profile data by username."""
+    conn = get_connection()
+    cur = conn.cursor()
+    try:
+        cur.execute("""
+            UPDATE resident
+            SET firstname = %s, lastname = %s, profile_picture_path = %s
+            WHERE username = %s
+        """, (firstname, lastname, profile_picture_path, username))
+        conn.commit()
+        return True, "Profile updated successfully."
+    except Exception as error:
+        return False, f"Error: {error}"
+    finally:
+        cur.close()
+        conn.close()
+
+# -------------------- GET USER STATUS BY USERNAME --------------------
+def get_user_status_by_username(username):
+    """Fetch the user's verification status by username."""
+    conn = get_connection()
+    cur = conn.cursor()
+    try:
+        cur.execute("SELECT verification_status FROM resident WHERE username = %s", (username,))
+        row = cur.fetchone()
+        return row[0] if row else None
+    except Exception as error:
+        print(f"Error fetching user verification status: {error}")
+        return None
+    finally:
+        cur.close()
+        conn.close()
+
+# -------------------- GET FULL USER DATA BY ID --------------------
+def get_full_user_data_by_id(resident_id):
+    """Fetch full user data including verification fields by resident ID."""
+    conn = get_connection()
+    cur = conn.cursor()
+    try:
+        cur.execute("""
+            SELECT firstname, lastname, dob, place_of_birth, age, civil_status, gender
+            FROM resident WHERE id = %s
+        """, (resident_id,))
+        row = cur.fetchone()
+        if row:
+            return {
+                "firstname": row[0], "lastname": row[1], "dob": row[2], "place_of_birth": row[3],
+                "age": row[4], "civil_status": row[5], "gender": row[6]
+            }
+        return None
+    except Exception as error:
+        print(f"Error fetching user data by ID: {error}")
+        return None
+    finally:
+        cur.close()
+        conn.close()
