@@ -14,7 +14,7 @@ VIEW_COLOR = "#3498DB" # Blue
 EDIT_COLOR = "#F1C40F" # Yellow/Orange
 DEACTIVATE_COLOR = "#95A5A6" # Gray
 
-# Global dictionary to hold references to sidebar buttons
+
 button_widgets = {}
 
 def get_total_residents_count():

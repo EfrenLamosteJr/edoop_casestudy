@@ -14,7 +14,7 @@ current_username = None
 
 # --- DATABASE FUNCTIONS ---
 def get_current_user_data(username):
-    print(f"Fetching data for username: {username}")  # Debug print
+    print(f"Fetching data for username: {username}")  # para sa debugging
     conn = get_connection()
     cur = conn.cursor()
     try:
@@ -24,7 +24,7 @@ def get_current_user_data(username):
             WHERE username = %s
         """, (username,))
         row = cur.fetchone()
-        print(f"Query result: {row}")  # Debug print
+        print(f"Query result: {row}")  # para sa debugging
         if row:
             return {
                 "firstname": row[0],
@@ -40,21 +40,19 @@ def get_current_user_data(username):
         conn.close()
 
 
-def save_user_profile_data(firstname, lastname, picture_path):
-    """Saves the profile picture path to the database for the current user."""
+def save_user_profile_data(picture_path):
     global current_username
     if not current_username:
         return False
     conn = get_connection()
     cur = conn.cursor()
     try:
-        cur.execute("""
-            UPDATE resident
+        cur.execute(""" UPDATE resident
             SET profile_picture_path = %s
-            WHERE username = %s
-        """, (picture_path, current_username))
+            WHERE username = %s""",
+            (picture_path, current_username))
         conn.commit()
-        print(f"Profile picture path saved for {current_username}: {picture_path}")  # Debug print
+        print(f"Profile picture path saved for {current_username}: {picture_path}")  # para sa debugging
         return True
     except Exception as error:
         print(f"Error saving profile data: {error}")
@@ -65,11 +63,10 @@ def save_user_profile_data(firstname, lastname, picture_path):
 
 
 def get_user_status_by_username(username):
-    """Fetch the user's account status by username."""
     conn = get_connection()
     cur = conn.cursor()
     try:
-        cur.execute("SELECT status FROM resident WHERE username = %s", (username,))
+        cur.execute("SELECT verification_status FROM resident WHERE username = %s", (username,))
         row = cur.fetchone()
         return row[0] if row else None
     except Exception as error:
@@ -84,22 +81,19 @@ def get_user_status_by_username(username):
 
 def create_home_page(parent_frame):
     """Creates the content for the Home page."""
-    content_label = ctk.CTkLabel(parent_frame, text="Welcome to the Home Page Content Area.", font=ctk.CTkFont(size=20),
-                                 text_color="gray")
+    content_label = ctk.CTkLabel(parent_frame, text="Welcome to the Home Page Content Area.", font=ctk.CTkFont(size=20), text_color="gray")
     content_label.place(relx=0.5, rely=0.5, anchor="center")
 
 
 def create_about_us_page(parent_frame):
     """Creates the content for the About Us page."""
-    content_label = ctk.CTkLabel(parent_frame, text="This is the About Us page.", font=ctk.CTkFont(size=20),
-                                 text_color="gray")
+    content_label = ctk.CTkLabel(parent_frame, text="This is the About Us page.", font=ctk.CTkFont(size=20), text_color="gray")
     content_label.place(relx=0.5, rely=0.5, anchor="center")
 
 
 def create_contact_us_page(parent_frame):
     """Creates the content for the Contact Us page."""
-    content_label = ctk.CTkLabel(parent_frame, text="Contact information goes here.", font=ctk.CTkFont(size=20),
-                                 text_color="gray")
+    content_label = ctk.CTkLabel(parent_frame, text="Contact information goes here.", font=ctk.CTkFont(size=20), text_color="gray")
     content_label.place(relx=0.5, rely=0.5, anchor="center")
 
 
@@ -190,9 +184,7 @@ def create_services_page(parent_frame):
         popup.transient(parent_frame.winfo_toplevel())
         popup.grab_set()
         ctk.CTkLabel(popup, text=title, font=ctk.CTkFont(size=18, weight="bold")).pack(pady=(20, 10))
-        ctk.CTkLabel(popup, text=message, font=ctk.CTkFont(size=14), wraplength=400, justify="left").pack(pady=10,
-                                                                                                          padx=20,
-                                                                                                          fill="x")
+        ctk.CTkLabel(popup, text=message, font=ctk.CTkFont(size=14), wraplength=400, justify="left").pack(pady=10, padx=20, fill="x")
         ctk.CTkButton(popup, text="OK", width=100, command=popup.destroy).pack(pady=20)
 
     def submit_all_documents():
@@ -279,9 +271,7 @@ def create_services_page(parent_frame):
 
             # Pass the new preview_label to the handler
             upload_button.configure(
-                command=lambda s_lbl=file_status_label, p_lbl=preview_label, req_name=subtitle: handle_upload(s_lbl,
-                                                                                                              p_lbl,
-                                                                                                              req_name))
+                command=lambda s_lbl=file_status_label, p_lbl=preview_label, req_name=subtitle: handle_upload(s_lbl, p_lbl, req_name))
 
             upload_button.pack(side="left", anchor="w")
             file_status_label.pack(side="left", anchor="w", padx=10)
@@ -307,9 +297,7 @@ def create_services_page(parent_frame):
 
     documents = list(requirements_data.keys())
     for doc_name in documents:
-        doc_button = ctk.CTkButton(button_container_frame, text=doc_name, fg_color=BTN_UNSELECTED_COLOR,
-                                   hover_color=BTN_HOVER_COLOR, font=ctk.CTkFont(size=14), corner_radius=16, height=40,
-                                   anchor="w")
+        doc_button = ctk.CTkButton(button_container_frame, text=doc_name, fg_color=BTN_UNSELECTED_COLOR, hover_color=BTN_HOVER_COLOR, font=ctk.CTkFont(size=14), corner_radius=16, height=40, anchor="w")
         doc_button.configure(command=lambda name=doc_name, btn=doc_button: select_document(name, btn))
         doc_button.pack(fill="x", pady=4)
 
@@ -361,20 +349,12 @@ def create_profile_page(parent_frame):
     current_row = 0
 
     # --- Display Existing Info (Labels) ---
-    ctk.CTkLabel(details_frame, text="First Name:", font=ctk.CTkFont(size=14, weight="bold")).grid(row=current_row,
-                                                                                                   column=0, sticky="w",
-                                                                                                   padx=(0, 10), pady=5)
-    ctk.CTkLabel(details_frame, text=user.get("firstname", "N/A"), font=ctk.CTkFont(size=14)).grid(row=current_row,
-                                                                                                   column=1, sticky="w",
-                                                                                                   pady=5)
+    ctk.CTkLabel(details_frame, text="First Name:", font=ctk.CTkFont(size=14, weight="bold")).grid(row=current_row, column=0, sticky="w", padx=(0, 10), pady=5)
+    ctk.CTkLabel(details_frame, text=user.get("firstname", "N/A"), font=ctk.CTkFont(size=14)).grid(row=current_row, column=1, sticky="w", pady=5)
     current_row += 1
 
-    ctk.CTkLabel(details_frame, text="Last Name:", font=ctk.CTkFont(size=14, weight="bold")).grid(row=current_row,
-                                                                                                  column=0, sticky="w",
-                                                                                                  padx=(0, 10), pady=10)
-    ctk.CTkLabel(details_frame, text=user.get("lastname", "N/A"), font=ctk.CTkFont(size=14)).grid(row=current_row,
-                                                                                                  column=1, sticky="w",
-                                                                                                  pady=10)
+    ctk.CTkLabel(details_frame, text="Last Name:", font=ctk.CTkFont(size=14, weight="bold")).grid(row=current_row, column=0, sticky="w", padx=(0, 10), pady=10)
+    ctk.CTkLabel(details_frame, text=user.get("lastname", "N/A"), font=ctk.CTkFont(size=14)).grid(row=current_row, column=1, sticky="w", pady=10)
     current_row += 1
 
     # --- Separator ---
@@ -397,23 +377,18 @@ def create_profile_page(parent_frame):
     fields = {}
 
     # DOB
-    ctk.CTkLabel(details_frame, text="Date of Birth (YYYY-MM-DD):", font=ctk.CTkFont(size=14, weight="bold"),
-                 anchor="w").grid(row=current_row, column=0, sticky="w", padx=(0, 10), pady=5)
+    ctk.CTkLabel(details_frame, text="Date of Birth (YYYY-MM-DD):", font=ctk.CTkFont(size=14, weight="bold"), anchor="w").grid(row=current_row, column=0, sticky="w", padx=(0, 10), pady=5)
     if is_approved:
-        ctk.CTkLabel(details_frame, text=user.get("dob", "N/A"), font=ctk.CTkFont(size=14)).grid(row=current_row,
-                                                                                                 column=1, sticky="w",
-                                                                                                 pady=5)
+        ctk.CTkLabel(details_frame, text=user.get("dob", "N/A"), font=ctk.CTkFont(size=14)).grid(row=current_row, column=1, sticky="w", pady=5)
     else:
-        dob_entry = ctk.CTkEntry(details_frame, placeholder_text="YYYY-MM-DD", font=ctk.CTkFont(size=14),
-                                 corner_radius=5)
+        dob_entry = ctk.CTkEntry(details_frame, placeholder_text="YYYY-MM-DD", font=ctk.CTkFont(size=14), corner_radius=5)
         dob_entry.grid(row=current_row, column=1, sticky="ew", pady=5)
         if user.get("dob"): dob_entry.insert(0, user["dob"])
         fields["dob"] = dob_entry
     current_row += 1
 
     # Place of Birth
-    ctk.CTkLabel(details_frame, text="Place of Birth:", font=ctk.CTkFont(size=14, weight="bold"), anchor="w").grid(
-        row=current_row, column=0, sticky="w", padx=(0, 10), pady=5)
+    ctk.CTkLabel(details_frame, text="Place of Birth:", font=ctk.CTkFont(size=14, weight="bold"), anchor="w").grid(row=current_row, column=0, sticky="w", padx=(0, 10), pady=5)
     if is_approved:
         ctk.CTkLabel(details_frame, text=user.get("place_of_birth", "N/A"), font=ctk.CTkFont(size=14)).grid(
             row=current_row, column=1, sticky="w", pady=5)
@@ -426,24 +401,16 @@ def create_profile_page(parent_frame):
 
     # Age
     age_options = ["-Select Age-"] + [str(i) for i in range(18, 101)]
-    ctk.CTkLabel(details_frame, text="Age:", font=ctk.CTkFont(size=14, weight="bold"), anchor="w").grid(row=current_row,
-                                                                                                        column=0,
-                                                                                                        sticky="w",
-                                                                                                        padx=(0, 10),
-                                                                                                        pady=5)
+    ctk.CTkLabel(details_frame, text="Age:", font=ctk.CTkFont(size=14, weight="bold"), anchor="w").grid(row=current_row, column=0, sticky="w", padx=(0, 10), pady=5)
     if is_approved:
-        ctk.CTkLabel(details_frame, text=str(user.get("age", "N/A")), font=ctk.CTkFont(size=14)).grid(row=current_row,
-                                                                                                      column=1,
-                                                                                                      sticky="w",
-                                                                                                      pady=5)
+        ctk.CTkLabel(details_frame, text=str(user.get("age", "N/A")), font=ctk.CTkFont(size=14)).grid(row=current_row, column=1, sticky="w", pady=5)
     else:
-        age_combobox = ctk.CTkComboBox(details_frame, font=ctk.CTkFont(size=14), corner_radius=5, values=age_options,
-                                       state="readonly")
+        age_combobox = ctk.CTkComboBox(details_frame, font=ctk.CTkFont(size=14), corner_radius=5, values=age_options, state="readonly")
         current_value = str(user.get("age")) if user.get("age") is not None else None
-        if current_value in age_options:  # Check if value is valid
+        if current_value in age_options:
             age_combobox.set(current_value)
         else:
-            age_combobox.set("-Select Age-")  # Default if invalid
+            age_combobox.set("-Select Age-")
         age_combobox.grid(row=current_row, column=1, sticky="ew", pady=5)
         fields["age"] = age_combobox
     current_row += 1
@@ -456,33 +423,28 @@ def create_profile_page(parent_frame):
         ctk.CTkLabel(details_frame, text=user.get("civil_status", "N/A"), font=ctk.CTkFont(size=14)).grid(
             row=current_row, column=1, sticky="w", pady=5)
     else:
-        civil_status_combobox = ctk.CTkComboBox(details_frame, font=ctk.CTkFont(size=14), corner_radius=5,
-                                                values=civil_status_options, state="readonly")
+        civil_status_combobox = ctk.CTkComboBox(details_frame, font=ctk.CTkFont(size=14), corner_radius=5, values=civil_status_options, state="readonly")
         current_value = user.get("civil_status")
-        if current_value in civil_status_options:  # Check if value is valid
+        if current_value in civil_status_options:
             civil_status_combobox.set(current_value)
         else:
-            civil_status_combobox.set("-Select-")  # Default if invalid
+            civil_status_combobox.set("-Select-")
         civil_status_combobox.grid(row=current_row, column=1, sticky="ew", pady=5)
         fields["civil_status"] = civil_status_combobox
     current_row += 1
 
     # Gender
     gender_options = ["-Select-", "Male", "Female", "Other", "Prefer not to say"]
-    ctk.CTkLabel(details_frame, text="Gender:", font=ctk.CTkFont(size=14, weight="bold"), anchor="w").grid(
-        row=current_row, column=0, sticky="w", padx=(0, 10), pady=5)
+    ctk.CTkLabel(details_frame, text="Gender:", font=ctk.CTkFont(size=14, weight="bold"), anchor="w").grid( row=current_row, column=0, sticky="w", padx=(0, 10), pady=5)
     if is_approved:
-        ctk.CTkLabel(details_frame, text=user.get("gender", "N/A"), font=ctk.CTkFont(size=14)).grid(row=current_row,
-                                                                                                    column=1,
-                                                                                                    sticky="w", pady=5)
+        ctk.CTkLabel(details_frame, text=user.get("gender", "N/A"), font=ctk.CTkFont(size=14)).grid(row=current_row, column=1, sticky="w", pady=5)
     else:
-        gender_combobox = ctk.CTkComboBox(details_frame, font=ctk.CTkFont(size=14), corner_radius=5,
-                                          values=gender_options, state="readonly")
+        gender_combobox = ctk.CTkComboBox(details_frame, font=ctk.CTkFont(size=14), corner_radius=5, values=gender_options, state="readonly")
         current_value = user.get("gender")
-        if current_value in gender_options:  # Check if value is valid
+        if current_value in gender_options:
             gender_combobox.set(current_value)
         else:
-            gender_combobox.set("-Select-")  # Default if invalid
+            gender_combobox.set("-Select-")
         gender_combobox.grid(row=current_row, column=1, sticky="ew", pady=5)
         fields["gender"] = gender_combobox
     current_row += 1
@@ -499,10 +461,7 @@ def create_profile_page(parent_frame):
         submit_info_btn.grid(row=current_row, column=0, columnspan=2, sticky="w", pady=(20, 0));
         current_row += 1
     elif is_pending:
-        ctk.CTkLabel(details_frame, text="Verification is in process. Please wait for admin approval.",
-                     font=ctk.CTkFont(size=12, weight="bold"), text_color="orange").grid(row=current_row, column=0,
-                                                                                         columnspan=2, sticky="w",
-                                                                                         pady=(20, 0));
+        ctk.CTkLabel(details_frame, text="Verification is in process. Please wait for admin approval.", font=ctk.CTkFont(size=12, weight="bold"), text_color="orange").grid(row=current_row, column=0, columnspan=2, sticky="w", pady=(20, 0));
         current_row += 1
 
     # --- Functions ---
@@ -529,17 +488,14 @@ def create_profile_page(parent_frame):
     def display_image(image_path):
         if image_path and os.path.exists(image_path):
             try:
-                img = Image.open(image_path); ctk_img = ctk.CTkImage(light_image=img,
-                                                                     size=(200, 200)); pfp_label.configure(
-                    image=ctk_img, text=""); pfp_label.image = ctk_img
+                img = Image.open(image_path); ctk_img = ctk.CTkImage(light_image=img, size=(200, 200)); pfp_label.configure( image=ctk_img, text=""); pfp_label.image = ctk_img
             except Exception as e:
                 pfp_label.configure(image=None, text=f"Error:\n{e}")
         else:
             pfp_label.configure(image=None, text="No Image")
 
     def upload_picture():
-        filepath = filedialog.askopenfilename(title="Select Profile Picture",
-                                              filetypes=(("Image Files", "*.png *.jpg *.jpeg"),))
+        filepath = filedialog.askopenfilename(title="Select Profile Picture", filetypes=(("Image Files", "*.png *.jpg *.jpeg"),))
         if filepath:
             new_picture_path["path"] = filepath
             display_image(filepath)
