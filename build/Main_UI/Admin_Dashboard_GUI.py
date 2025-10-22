@@ -1,5 +1,8 @@
 # Admin_Dashboard_GUI.py
 import customtkinter as ctk
+from PIL import Image, ImageTk
+import io
+import requests
 from database_connector import get_connection
 from auth import create_staff_account, send_rejection_email, send_approval_email, approve_verification_request, reject_verification_request
 SIDEBAR_BG = "#3498db"
@@ -16,6 +19,41 @@ DEACTIVATE_COLOR = "#95A5A6" # Gray
 
 
 button_widgets = {}
+
+barangay_logo_pil = None
+barangay_logo_ctk_image = None
+barangay_logo_icon = None
+
+def load_image_from_url(url, size):
+    """
+    Downloads an image from a URL and returns a CTkImage object.
+    Returns None if loading fails.
+    """
+    try:
+        response = requests.get(url)
+        response.raise_for_status() # Raise an error for bad responses
+        
+        image_data = response.content
+        pil_image = Image.open(io.BytesIO(image_data))
+        
+        ctk_image = ctk.CTkImage(pil_image, size=size)
+        return ctk_image
+    except requests.exceptions.RequestException as e:
+        print(f"Error fetching image from URL {url}: {e}")
+        return None
+    except Exception as e:
+        print(f"Error processing image: {e}")
+        return None
+
+# --- ADD THIS CODE TO LOAD THE LOGO GLOBALLY ---
+LOGO_URL = "https://raw.githubusercontent.com/EfrenLamosteJr/edoop_casestudy/5ef8907a670294733dfb769d07195e84db937dd9/build/Image_Resources/P2SERVE_LOGO.png"
+print("Loading barangay logo from URL...")
+barangay_logo_ctk_image = load_image_from_url(LOGO_URL, size=(40, 40))
+
+if barangay_logo_ctk_image:
+    print("Barangay logo loaded successfully.")
+else:
+    print("FAILED to load barangay logo. Check URL or internet connection.")
 
 def get_total_residents_count():
     conn = get_connection()
@@ -208,12 +246,15 @@ def show_request_management_content(parent_frame):
 
 def show_resident_accounts_content(parent_frame):
 
+    global barangay_logo_icon, barangay_logo_ctk_image
+
     def refresh_content():
         # Clear and reload the content
         for widget in parent_frame.winfo_children():
             widget.destroy()
         show_resident_accounts_content(parent_frame)
-#------------DATABASE----------------
+
+    #------------DATABASE HELPER FUNCTIONS (MOVED HERE)----------------
     def get_pending_verification_residents():
         conn = get_connection()
         cur = conn.cursor()
@@ -241,6 +282,227 @@ def show_resident_accounts_content(parent_frame):
         finally:
             cur.close()
             conn.close()
+
+    #------------ACTION HELPER FUNCTIONS (MOVED HERE)----------------
+
+    def on_approve(res_id, popup_window):
+        print(f"Attempting to approve resident: {res_id}")
+        # 
+        # --- ADD YOUR DATABASE LOGIC HERE ---
+        # Example: update_resident_status(res_id, "Approved")
+        #
+        print(f"Resident {res_id} Approved.")
+        popup_window.destroy() # Close the popup after action
+
+    def on_reject(res_id, popup_window):
+        print(f"Attempting to reject resident: {res_id}")
+        # 
+        # --- ADD YOUR DATABASE LOGIC HERE ---
+        # Example: update_resident_status(res_id, "Rejected")
+        #
+        print(f"Resident {res_id} Rejected.")
+        popup_window.destroy() # Close the popup after action
+
+
+    # This function is INSIDE show_resident_accounts_content
+        # REPLACE your old view_action with this one:
+        
+    def view_action(res_id, parent_frame):
+        # --- Make sure globals are declared at the top ---
+        global barangay_logo_icon, barangay_logo_ctk_image 
+
+        user_data = get_full_user_data_by_id(res_id)
+        
+        if not user_data:
+            print("No verification data found for resident_id:", res_id)
+            return
+
+        # --- 1. CREATE THE POPUP WINDOW ---
+        popup = ctk.CTkToplevel(parent_frame)
+        popup.title("Resident Verification")
+        popup.geometry("800x550") 
+        popup.grab_set()
+        popup.configure(fg_color="white") 
+        popup.resizable(False, False)
+        
+        if barangay_logo_icon:
+            try:
+                popup.iconphoto(True, barangay_logo_icon)
+            except Exception as e:
+                print(f"Failed to set window icon: {e}")
+
+        # --- 2. CREATE NEW THEMED HEADER ---
+        header_frame = ctk.CTkFrame(popup, fg_color=VIEW_COLOR, height=60, corner_radius=0)
+        header_frame.pack(side="top", fill="x")
+        header_frame.grid_columnconfigure(1, weight=1)
+
+        if barangay_logo_ctk_image:
+            logo_label = ctk.CTkLabel(header_frame, text="", image=barangay_logo_ctk_image)
+            logo_label.grid(row=0, column=0, padx=15, pady=10, sticky="w")
+        
+        title_label = ctk.CTkLabel(
+            header_frame, 
+            text=f"Verification for: {user_data['firstname']} {user_data['lastname']}",
+            font=ctk.CTkFont(size=18, weight="bold"),
+            text_color="white",
+            anchor="w"
+        )
+        title_label.grid(row=0, column=1, padx=(10, 20), pady=10, sticky="ew")
+
+        # --- 3. CREATE MAIN CONTENT FRAME ---
+        main_content_frame = ctk.CTkFrame(popup, fg_color="transparent")
+        main_content_frame.pack(fill="both", expand=True, padx=20, pady=(0, 20))
+
+        main_content_frame.grid_columnconfigure(0, weight=1) 
+        main_content_frame.grid_columnconfigure(1, weight=2) 
+        main_content_frame.grid_rowconfigure(0, weight=1)    
+        main_content_frame.grid_rowconfigure(1, weight=0)    
+
+        # --- 4. CREATE FRAMES for Image, Info, Buttons ---
+        image_frame = ctk.CTkFrame(main_content_frame, fg_color="transparent")
+        image_frame.grid(row=0, column=0, padx=(0, 10), pady=(20, 10), sticky="nsew")
+        image_frame.grid_rowconfigure(0, weight=1)
+        image_frame.grid_columnconfigure(0, weight=1)
+
+        info_frame = ctk.CTkFrame(main_content_frame, fg_color="transparent")
+        info_frame.grid(row=0, column=1, padx=(10, 0), pady=(20, 10), sticky="nsew")
+        info_frame.grid_columnconfigure(0, minsize=130) 
+        info_frame.grid_columnconfigure(1, weight=1) 
+        info_frame.grid_rowconfigure(0, weight=1) 
+
+        button_frame = ctk.CTkFrame(main_content_frame, fg_color="transparent")
+        button_frame.grid(row=1, column=0, columnspan=2, pady=(10, 0), sticky="ew")
+
+        # --- 5. POPULATE IMAGE FRAME (No border) ---
+        
+        image_display_size = 250 # Set the desired size for the image
+        
+        image_label = ctk.CTkLabel(
+            image_frame, 
+            text="No Image Provided", 
+            width=image_display_size,   # 250
+            height=image_display_size,  # 250
+            # --- MODIFICATION: Set background to transparent ---
+            fg_color="transparent",
+            corner_radius=10
+        )
+        image_label.grid(row=0, column=0, sticky="") # This centers the label
+
+        image_path = user_data.get('profile_picture')
+        if image_path:
+            try:
+                pil_image = Image.open(image_path)
+                # --- MODIFICATION: Image size matches label size ---
+                ctk_image = ctk.CTkImage(pil_image, size=(image_display_size, image_display_size)) 
+                image_label.configure(text="", image=ctk_image) 
+                image_label.image = ctk_image
+            except Exception as e:
+                print(f"Error loading image from path {image_path}: {e}")
+                image_label.configure(text=f"Error loading image.")
+        else:
+             print(f"No image path found for resident {res_id}")
+
+        # --- 6. POPULATE INFO FRAME (Left-aligned, centered) ---
+        label_font = ctk.CTkFont(size=16, weight="bold")
+        data_font = ctk.CTkFont(size=16) 
+        
+        info_to_display = {
+            "Name:": f"{user_data['firstname']} {user_data['lastname']}",
+            "Date of Birth:": user_data['dob'] or 'N/A',
+            "Place of Birth:": user_data['place_of_birth'] or 'N/A',
+            "Age:": user_data['age'] or 'N/A',
+            "Civil Status:": user_data['civil_status'] or 'N/A',
+            "Gender:": user_data['gender'] or 'N/A'
+        }
+        
+        for i, (label_text, data_text) in enumerate(info_to_display.items(), start=1):
+            ctk.CTkLabel(
+                info_frame, 
+                text=label_text, 
+                font=label_font, 
+                text_color="black", 
+                anchor="w" 
+            ).grid(row=i, column=0, padx=(0, 10), pady=8, sticky="w")
+            
+            ctk.CTkLabel(
+                info_frame, 
+                text=data_text, 
+                font=data_font, 
+                text_color="black", 
+                anchor="w", 
+                wraplength=300
+            ).grid(row=i, column=1, padx=(0, 10), pady=8, sticky="w")
+            
+        info_frame.grid_rowconfigure(len(info_to_display) + 1, weight=1) 
+
+
+        # --- 7. POPULATE BUTTON FRAME (No changes here) ---
+        button_frame.grid_columnconfigure((0, 1, 2), weight=1) 
+
+        ctk.CTkButton(
+            button_frame, 
+            text="Approve", 
+            command=lambda id=res_id, email=user_data.get('email', ''): [approve_action(id, email), popup.destroy()],
+            fg_color=APPROVE_COLOR,
+            hover_color="darkgreen"
+        ).grid(row=0, column=0, padx=10, pady=10, sticky="ew")
+
+        ctk.CTkButton(
+            button_frame, 
+            text="Reject", 
+            command=lambda id=res_id, email=user_data.get('email', ''): [reject_action(id, email), popup.destroy()],
+            fg_color=REJECT_COLOR,
+            hover_color="#B71C1C"
+        ).grid(row=0, column=1, padx=10, pady=10, sticky="ew")
+
+        ctk.CTkButton(
+            button_frame, 
+            text="Close", 
+            command=popup.destroy,
+            fg_color=VIEW_COLOR, 
+            hover_color=SIDEBAR_BTN_HOVER
+        ).grid(row=0, column=2, padx=10, pady=10, sticky="ew")
+
+    def approve_action(res_id, email):
+        if approve_verification_request(res_id):
+            if send_approval_email(email):  # Send verification approval email
+                print(f"Approved verification for {res_id} and emailed {email}")
+            else:
+                print(f"Approved verification for {res_id} but failed to send email")
+            refresh_content()
+        else:
+            print(f"Failed to approve verification for {res_id}")
+
+    def reject_action(res_id, email):
+        # Create rejection popup for reason
+        popup = ctk.CTkToplevel(parent_frame)
+        popup.title("Reject Verification")
+        popup.geometry("400x300")
+        popup.transient(parent_frame)
+        popup.grab_set()
+
+        ctk.CTkLabel(popup, text="Reason for Rejection:", font=ctk.CTkFont(size=14)).pack(pady=(20, 10))
+        reason_text = ctk.CTkTextbox(popup, height=100)
+        reason_text.pack(pady=(0, 20), padx=20, fill="x")
+
+        def send_reject():
+            reason = reason_text.get("1.0", "end").strip()
+            if not reason:
+                ctk.CTkLabel(popup, text="Please enter a reason.", text_color="red").pack(pady=10)
+                return
+            if reject_verification_request(res_id):
+                if send_rejection_email(email, reason):  # Send rejection email with reason
+                    print(f"Rejected verification for {res_id} and emailed {email}")
+                else:
+                    print(f"Rejected verification for {res_id} but failed to send email")
+                refresh_content()
+            else:
+                print(f"Failed to reject verification for {res_id}")
+            popup.destroy()
+
+        ctk.CTkButton(popup, text="Send Rejection", command=send_reject).pack(pady=10)
+        
+    # --- END OF HELPER FUNCTION DEFINITIONS ---
 
     pending_residents = get_pending_verification_residents()
     approved_residents = get_approved_residents()
@@ -282,68 +544,23 @@ def show_resident_accounts_content(parent_frame):
 
             action_buttons_frame = ctk.CTkFrame(row_frame, fg_color="transparent")
             action_buttons_frame.grid(row=0, column=3, sticky="e")
-
-            def view_action(res_id):
-                # Fetch and display verification info in a popup
-                user_data = get_full_user_data_by_id(res_id)
-                if user_data:
-                    info = f"Name: {user_data['firstname']} {user_data['lastname']}\nDOB: {user_data['dob'] or 'N/A'}\nPlace of Birth: {user_data['place_of_birth'] or 'N/A'}\nAge: {user_data['age'] or 'N/A'}\nCivil Status: {user_data['civil_status'] or 'N/A'}\nGender: {user_data['gender'] or 'N/A'}"
-                    popup = ctk.CTkToplevel(parent_frame)
-                    popup.title("Verification Info")
-                    popup.geometry("400x300")
-                    ctk.CTkLabel(popup, text=info, font=ctk.CTkFont(size=12)).pack(pady=20, padx=20)
-                    ctk.CTkButton(popup, text="Close", command=popup.destroy).pack(pady=10)
-                else:
-                    print("No verification data found")
-
-            def approve_action(res_id, email):
-                if approve_verification_request(res_id):
-                    if send_approval_email(email):  # Send verification approval email
-                        print(f"Approved verification for {res_id} and emailed {email}")
-                    else:
-                        print(f"Approved verification for {res_id} but failed to send email")
-                    refresh_content()
-                else:
-                    print(f"Failed to approve verification for {res_id}")
-
-            def reject_action(res_id, email):
-                # Create rejection popup for reason
-                popup = ctk.CTkToplevel(parent_frame)
-                popup.title("Reject Verification")
-                popup.geometry("400x300")
-                popup.transient(parent_frame)
-                popup.grab_set()
-
-                ctk.CTkLabel(popup, text="Reason for Rejection:", font=ctk.CTkFont(size=14)).pack(pady=(20, 10))
-                reason_text = ctk.CTkTextbox(popup, height=100)
-                reason_text.pack(pady=(0, 20), padx=20, fill="x")
-
-                def send_reject():
-                    reason = reason_text.get("1.0", "end").strip()
-                    if not reason:
-                        ctk.CTkLabel(popup, text="Please enter a reason.", text_color="red").pack(pady=10)
-                        return
-                    if reject_verification_request(res_id):
-                        if send_rejection_email(email, reason):  # Send rejection email with reason
-                            print(f"Rejected verification for {res_id} and emailed {email}")
-                        else:
-                            print(f"Rejected verification for {res_id} but failed to send email")
-                        refresh_content()
-                    else:
-                        print(f"Failed to reject verification for {res_id}")
-                    popup.destroy()
-
-                ctk.CTkButton(popup, text="Send Rejection", command=send_reject).pack(pady=10)
-            #---BUTTON STATUS
-            ctk.CTkButton(action_buttons_frame, text="View", width=60, height=25, fg_color=VIEW_COLOR, font=ctk.CTkFont(size=10), command=lambda id=resident['id']: view_action(id)).pack(
-                side="left", padx=2)
+            
+            # ---!!! ALL BUTTONS MOVED HERE, INSIDE THE LOOP !!!---
+            
+            # *** BUG FIX HERE: ***
+            # Added 'parent_frame' to the view_action call
+            ctk.CTkButton(action_buttons_frame, text="View", width=60, height=25, fg_color=VIEW_COLOR, font=ctk.CTkFont(size=10), 
+                          command=lambda id=resident['id']: view_action(id, parent_frame)).pack(side="left", padx=2)
+                          
             ctk.CTkButton(action_buttons_frame, text="Approve", width=60, height=25, fg_color=APPROVE_COLOR,
                           font=ctk.CTkFont(size=10), command=lambda id=resident['id'], email=resident['email']: approve_action(id, email)).pack(
                 side="left", padx=2)
+                
             ctk.CTkButton(action_buttons_frame, text="Reject", width=60, height=25, fg_color=REJECT_COLOR, font=ctk.CTkFont(size=10),
                           command=lambda id=resident['id'], email=resident['email']: reject_action(id, email)).pack(
                 side="left", padx=2)
 
+    # --- "Verified Residents" Section (no changes needed here) ---
     approved_title_text = f"Verified Residents ({len(approved_residents)})"
     approved_title = ctk.CTkLabel(scrollable_frame, text=approved_title_text, font=ctk.CTkFont(size=18, weight="bold"), anchor="w")
     approved_title.pack(fill="x", pady=(20, 5), padx=10)
@@ -376,15 +593,18 @@ def get_full_user_data_by_id(resident_id):
     conn = get_connection()
     cur = conn.cursor()
     try:
+        # --- MODIFICATION: Added 'profile_picture' to the query ---
         cur.execute("""
-            SELECT firstname, lastname, dob, place_of_birth, age, civil_status, gender
+            SELECT firstname, lastname, dob, place_of_birth, age, civil_status, gender, profile_picture_path
             FROM resident WHERE id = %s
         """, (resident_id,))
         row = cur.fetchone()
+        
         if row:
             return {
-                "firstname": row[0], "lastname": row[1], "dob": row[2], "place_of_birth": row[3],
-                "age": row[4], "civil_status": row[5], "gender": row[6]
+                "firstname": row[0], "lastname": row[1], "dob": row[2], 
+                "place_of_birth": row[3], "age": row[4], "civil_status": row[5], 
+                "gender": row[6], "profile_picture": row[7] # --- MODIFICATION: Added new data ---
             }
         return None
     except Exception as error:
@@ -393,6 +613,7 @@ def get_full_user_data_by_id(resident_id):
     finally:
         cur.close()
         conn.close()
+
 
 def show_staff_accounts_content(parent_frame):
     existing_staff = get_existing_staff()
@@ -526,6 +747,25 @@ def start_admin_dashboard():
     # (Main app setup - collapsed for brevity)
     ctk.set_appearance_mode("light"); ctk.set_default_color_theme("blue")
     root = ctk.CTk(); root.title("P2SERVE Admin Panel"); root.geometry("1200x700")
+
+    global barangay_logo_pil, barangay_logo_ctk_image, barangay_logo_icon
+    
+    print("Creating Tkinter images from PIL image...")
+    if barangay_logo_pil:
+        try:
+            # NOW it's safe to create these because 'root' exists
+            barangay_logo_ctk_image = ctk.CTkImage(barangay_logo_pil.copy(), size=(40, 40))
+            barangay_logo_icon = ImageTk.PhotoImage(barangay_logo_pil.copy())
+            print("Barangay logo and icon created successfully.")
+            
+            # Set the main window icon right away
+            root.iconphoto(True, barangay_logo_icon)
+        except Exception as e:
+            print(f"Error creating Tkinter images: {e}")
+    else:
+        print("Skipping Tkinter image creation, PIL image not loaded.")
+    # --- END OF IMAGE CONVERSION ---
+
     root.grid_columnconfigure(1, weight=1); root.grid_rowconfigure(0, weight=1)
     sidebar_frame = ctk.CTkFrame(root, width=250, fg_color=SIDEBAR_BG, corner_radius=0); sidebar_frame.grid(row=0, column=0, sticky="nsw"); sidebar_frame.grid_propagate(False)
     content_container = ctk.CTkFrame(root, fg_color=CONTENT_BG, corner_radius=0); content_container.grid(row=0, column=1, sticky="nsew", padx=20, pady=20); content_container.grid_rowconfigure(1, weight=1); content_container.grid_columnconfigure(0, weight=1)
