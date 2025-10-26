@@ -728,12 +728,6 @@ def show_staff_accounts_content(parent_frame):
                           font=ctk.CTkFont(size=10), command=lambda id=staff['id']: view_staff_action(id)).pack(
                 side="left", padx=2)
 
-
-def show_system_settings_content(parent_frame):
-    """Placeholder function to display content for the System Settings page."""
-    show_placeholder_content(parent_frame, "System Settings")
-
-
 def show_placeholder_content(parent_frame, page_name):
     """Shows simple placeholder text for pages that are not fully built yet."""
     # (Placeholder function - collapsed for brevity)
@@ -778,7 +772,6 @@ def start_admin_dashboard():
         "requests": ["📁", "Request Management"],
         "residents": ["👥", "Resident Accounts"],
         "staff": ["👤", "Staff Accounts"],
-        "settings": ["⚙️", "System Settings"]
     }
 
     def update_sidebar_selection(active_key):
@@ -799,7 +792,6 @@ def start_admin_dashboard():
         elif page_key == "requests": show_request_management_content(dynamic_content_frame)
         elif page_key == "residents": show_resident_accounts_content(dynamic_content_frame)
         elif page_key == "staff": show_staff_accounts_content(dynamic_content_frame)
-        elif page_key == "settings": show_system_settings_content(dynamic_content_frame)
         else: show_placeholder_content(dynamic_content_frame, "Unknown Page")
 
     # --- Sidebar Widgets ---
