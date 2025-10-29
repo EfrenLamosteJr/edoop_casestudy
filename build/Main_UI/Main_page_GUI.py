@@ -96,9 +96,6 @@ def create_home_page(parent_frame):
     print("--- Entering create_home_page (Reverted Scaling, Content Below) ---") # Changed log
 
     parent_frame.configure(fg_color="transparent") # Keep parent transparent
-    #https://github.com/EfrenLamosteJr/edoop_casestudy/blob/main/build/Image_Resources/barangay_background.jpg?raw=true
-    #https://github.com/EfrenLamosteJr/edoop_casestudy/blob/88332146a003b7ee56069c5760400904cfdc21f1/build/Image_Resources/barangay_background.jpg
-    #https://raw.githubusercontent.com/EfrenLamosteJr/edoop_casestudy/build/Image_Resources/barangay_background.jpg
     image_path = r"https://raw.githubusercontent.com/EfrenLamosteJr/edoop_casestudy/refs/heads/main/build/Image_Resources/barangay_background.jpg"
     original_pil_image = None
     canvas = None
@@ -108,15 +105,14 @@ def create_home_page(parent_frame):
 
     # --- Officials Data ---
     officials = [
-        {"type": "captain", "name": "Maykol Mendoza the Great", "title": "BARANGAY CAPTAIN", "committee": "Health and Sanitation", "image_path": r"https://raw.githubusercontent.com/EfrenLamosteJr/edoop_casestudy/88332146a003b7ee56069c5760400904cfdc21f1/build/Image_Resources/maykol2.png"},
-        {"type": "kagawad", "name": "Name", "title": "Position", "committee": "Social Services, Management and Information Systems", "image_path": r"https://raw.githubusercontent.com/EfrenLamosteJr/edoop_casestudy/88332146a003b7ee56069c5760400904cfdc21f1/build/Image_Resources/maykol2.png"},
-        {"type": "kagawad", "name": "Name", "title": "Position", "committee": "Beautification and Cleanliness Committee, Barangay Disaster Risk Reduction Management", "image_path": r"https://raw.githubusercontent.com/EfrenLamosteJr/edoop_casestudy/88332146a003b7ee56069c5760400904cfdc21f1/build/Image_Resources/maykol2.png"},
-        {"type": "kagawad", "name": "Name", "title": "Position", "committee": "Peace and Order Committee", "image_path": r"https://raw.githubusercontent.com/EfrenLamosteJr/edoop_casestudy/88332146a003b7ee56069c5760400904cfdc21f1/build/Image_Resources/maykol2.png"},
-        {"type": "kagawad", "name": "Name", "title": "Position", "committee": "Peace and Order Committee", "image_path": r"https://raw.githubusercontent.com/EfrenLamosteJr/edoop_casestudy/88332146a003b7ee56069c5760400904cfdc21f1/build/Image_Resources/maykol2.png"},
-        {"type": "kagawad", "name": "Name", "title": "Position", "committee": "Peace and Order Committee", "image_path": r"https://raw.githubusercontent.com/EfrenLamosteJr/edoop_casestudy/88332146a003b7ee56069c5760400904cfdc21f1/build/Image_Resources/maykol2.png"},
-        {"type": "kagawad", "name": "Name", "title": "Position", "committee": "Peace and Order Committee", "image_path": r"https://raw.githubusercontent.com/EfrenLamosteJr/edoop_casestudy/88332146a003b7ee56069c5760400904cfdc21f1/build/Image_Resources/maykol2.png"},
-        {"type": "kagawad", "name": "Name", "title": "Position", "committee": "Peace and Order Committee", "image_path": r"https://raw.githubusercontent.com/EfrenLamosteJr/edoop_casestudy/88332146a003b7ee56069c5760400904cfdc21f1/build/Image_Resources/maykol2.png"},
-        {"type": "kagawad", "name": "Name", "title": "Position", "committee": "Peace and Order Committee", "image_path": r"https://raw.githubusercontent.com/EfrenLamosteJr/edoop_casestudy/88332146a003b7ee56069c5760400904cfdc21f1/build/Image_Resources/maykol2.png"},
+        {"type": "captain", "name": "BOSS Irineo M4p4GmAhALZ", "title": "BARANGAY CAPTAIN", "committee": "Health and Sanitation", "image_path": r"https://raw.githubusercontent.com/EfrenLamosteJr/edoop_casestudy/refs/heads/main/build/Image_Resources/captain1.jpg"},
+        {"type": "kagawad", "name": "Aaron Peña", "title": "Position", "committee": "Social Services, Management and Information Systems", "image_path": r"https://raw.githubusercontent.com/EfrenLamosteJr/edoop_casestudy/88332146a003b7ee56069c5760400904cfdc21f1/build/Image_Resources/maykol2.png"},
+        {"type": "kagawad", "name": "Benedicto Gamba", "title": "Position", "committee": "Beautification and Cleanliness Committee, Barangay Disaster Risk Reduction Management", "image_path": r"https://raw.githubusercontent.com/EfrenLamosteJr/edoop_casestudy/88332146a003b7ee56069c5760400904cfdc21f1/build/Image_Resources/maykol2.png"},
+        {"type": "kagawad", "name": "Cristal San Juan", "title": "Position", "committee": "Peace and Order Committee", "image_path": r"https://raw.githubusercontent.com/EfrenLamosteJr/edoop_casestudy/88332146a003b7ee56069c5760400904cfdc21f1/build/Image_Resources/maykol2.png"},
+        {"type": "kagawad", "name": "Gizelle Reyes Tuazon", "title": "Position", "committee": "Peace and Order Committee", "image_path": r"https://raw.githubusercontent.com/EfrenLamosteJr/edoop_casestudy/88332146a003b7ee56069c5760400904cfdc21f1/build/Image_Resources/maykol2.png"},
+        {"type": "kagawad", "name": "Larry Pasco", "title": "Position", "committee": "Peace and Order Committee", "image_path": r"https://raw.githubusercontent.com/EfrenLamosteJr/edoop_casestudy/88332146a003b7ee56069c5760400904cfdc21f1/build/Image_Resources/maykol2.png"},
+        {"type": "kagawad", "name": "Michael Sumala", "title": "Position", "committee": "Peace and Order Committee", "image_path": r"https://raw.githubusercontent.com/EfrenLamosteJr/edoop_casestudy/88332146a003b7ee56069c5760400904cfdc21f1/build/Image_Resources/maykol2.png"},
+        {"type": "kagawad", "name": "Topher Garcia", "title": "Position", "committee": "Peace and Order Committee", "image_path": r"https://raw.githubusercontent.com/EfrenLamosteJr/edoop_casestudy/88332146a003b7ee56069c5760400904cfdc21f1/build/Image_Resources/maykol2.png"},
 
         # Add more officials here if needed
     ]
@@ -217,7 +213,7 @@ def create_home_page(parent_frame):
         current_y += title_font.metrics('linespace') + 30
 
         captain = officials[0]
-        placeholder_size_captain = 150
+        placeholder_size_captain = 200
         placeholder_x_captain = center_x - (placeholder_size_captain / 2); placeholder_y_captain = current_y
         
         # --- NEW: Try to load and draw captain's image ---
@@ -253,8 +249,34 @@ def create_home_page(parent_frame):
 
         kagawads = officials[1:]
         num_columns = 3; column_width = frame_width / num_columns
+        placeholder_size_kagawad = 130; kagawad_start_y = current_y
+        max_row_height = 0 
+
+        kagawads = officials[1:]
+        num_columns = 3
+        
+        # Avoid division by zero if frame_width is tiny
+        if frame_width < 1: frame_width = 1 
+        column_width = frame_width / num_columns
+        
         placeholder_size_kagawad = 100; kagawad_start_y = current_y
         max_row_height = 0 
+
+        # --- NEW: Logic for centering the last row ---
+        num_kagawads = len(kagawads)
+        
+        # Find out how many items are in the last row
+        num_in_last_row = num_kagawads % num_columns
+        if num_in_last_row == 0:
+            num_in_last_row = num_columns # Last row is full, treat normally
+            
+        # Get the index of the last row (e.g., row 0, 1, 2...)
+        last_row_index = (num_kagawads - 1) // num_columns
+        
+        # Calculate the padding needed to center the last row's items
+        last_row_total_width = num_in_last_row * column_width
+        left_padding = (frame_width - last_row_total_width) / 2
+        # --- END NEW ---
 
         for i, kagawad in enumerate(kagawads):
             col = i % num_columns
@@ -264,7 +286,18 @@ def create_home_page(parent_frame):
                 kagawad_start_y += max_row_height + section_padding 
                 max_row_height = 0 
 
-            base_x = (col * column_width) + (column_width / 2)
+            # --- MODIFIED: base_x calculation ---
+            # Check if we are on the last row AND it's not a full row
+            if row == last_row_index and num_in_last_row != num_columns:
+                # We are in the non-full last row, use padding
+                # Get the column *within* the last row (0, 1...)
+                col_in_last_row = i - (last_row_index * num_columns) 
+                base_x = left_padding + (col_in_last_row * column_width) + (column_width / 2)
+            else:
+                # This is a full row, calculate normally
+                base_x = (col * column_width) + (column_width / 2)
+            # --- END MODIFIED ---
+            
             base_y = kagawad_start_y
             ph_y = base_y
             
