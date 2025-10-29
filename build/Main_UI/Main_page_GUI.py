@@ -100,9 +100,10 @@ def create_home_page(parent_frame):
     original_pil_image = None
     canvas = None
     bg_photo_image_ref = None # Stored on canvas later
+
+
     # Store officials' photo placeholders if needed later
     officials_placeholders = {}
-
     # --- Officials Data ---
     officials = [
         {"type": "captain", "name": "BOSS Irineo M4p4GmAhALZ", "title": "BARANGAY CAPTAIN", "committee": "Health and Sanitation", "image_path": r"https://raw.githubusercontent.com/EfrenLamosteJr/edoop_casestudy/refs/heads/main/build/Image_Resources/captain1.jpg"},
@@ -247,11 +248,7 @@ def create_home_page(parent_frame):
         bbox_capt = canvas.bbox(committee_text_id_capt) 
         current_y += (bbox_capt[3] - bbox_capt[1] if bbox_capt else committee_font.metrics('linespace')) + section_padding
 
-        kagawads = officials[1:]
-        num_columns = 3; column_width = frame_width / num_columns
-        placeholder_size_kagawad = 130; kagawad_start_y = current_y
-        max_row_height = 0 
-
+    
         kagawads = officials[1:]
         num_columns = 3
         
@@ -259,7 +256,7 @@ def create_home_page(parent_frame):
         if frame_width < 1: frame_width = 1 
         column_width = frame_width / num_columns
         
-        placeholder_size_kagawad = 100; kagawad_start_y = current_y
+        placeholder_size_kagawad = 150; kagawad_start_y = current_y
         max_row_height = 0 
 
         # --- NEW: Logic for centering the last row ---
