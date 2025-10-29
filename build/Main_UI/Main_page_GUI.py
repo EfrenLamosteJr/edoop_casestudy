@@ -4,8 +4,9 @@ import tkinter as tk
 from tkinter import filedialog
 import os
 from database_connector import get_connection
-from PIL import Image, ImageTk
+from PIL import Image, ImageTk, ImageDraw
 import requests
+import io
 from io import BytesIO
 from auth import get_user_id_by_username, insert_document_request, get_full_user_data, submit_verification_request
 
@@ -50,7 +51,7 @@ def save_user_profile_data(picture_path):
         cur.execute(""" UPDATE resident
             SET profile_picture_path = %s
             WHERE username = %s""",
-            (picture_path, current_username))
+                    (picture_path, current_username))
         conn.commit()
         print(f"Profile picture path saved for {current_username}: {picture_path}")  # para sa debugging
         return True
@@ -79,23 +80,271 @@ def get_user_status_by_username(username):
 
 # --- PAGE CREATION FUNCTIONS ---
 
+# Import ImageTk at the top of your file if not already there
+from PIL import Image, ImageTk # Make sure ImageTk is imported
+
+# Import ImageTk at the top of your file if not already there
+from PIL import Image, ImageTk # Make sure ImageTk is imported
+
+# Import ImageTk at the top of your file if not already there
+from PIL import Image, ImageTk # Make sure ImageTk is imported
+
+import tkinter.font as tkFont
+
 def create_home_page(parent_frame):
-    """Creates the content for the Home page."""
-    content_label = ctk.CTkLabel(parent_frame, text="Welcome to the Home Page Content Area.", font=ctk.CTkFont(size=20), text_color="gray")
-    content_label.place(relx=0.5, rely=0.5, anchor="center")
+    """Creates the content for the Home page using a scrollable Canvas."""
+    print("--- Entering create_home_page (Reverted Scaling, Content Below) ---") # Changed log
+
+    parent_frame.configure(fg_color="transparent") # Keep parent transparent
+    #https://github.com/EfrenLamosteJr/edoop_casestudy/blob/main/build/Image_Resources/barangay_background.jpg?raw=true
+    #https://github.com/EfrenLamosteJr/edoop_casestudy/blob/88332146a003b7ee56069c5760400904cfdc21f1/build/Image_Resources/barangay_background.jpg
+    #https://raw.githubusercontent.com/EfrenLamosteJr/edoop_casestudy/build/Image_Resources/barangay_background.jpg
+    image_path = r"https://raw.githubusercontent.com/EfrenLamosteJr/edoop_casestudy/refs/heads/main/build/Image_Resources/barangay_background.jpg"
+    original_pil_image = None
+    canvas = None
+    bg_photo_image_ref = None # Stored on canvas later
+    # Store officials' photo placeholders if needed later
+    officials_placeholders = {}
+
+    # --- Officials Data ---
+    officials = [
+        {"type": "captain", "name": "Maykol Mendoza the Great", "title": "BARANGAY CAPTAIN", "committee": "Health and Sanitation", "image_path": r"https://raw.githubusercontent.com/EfrenLamosteJr/edoop_casestudy/88332146a003b7ee56069c5760400904cfdc21f1/build/Image_Resources/maykol2.png"},
+        {"type": "kagawad", "name": "Name", "title": "Position", "committee": "Social Services, Management and Information Systems", "image_path": r"https://raw.githubusercontent.com/EfrenLamosteJr/edoop_casestudy/88332146a003b7ee56069c5760400904cfdc21f1/build/Image_Resources/maykol2.png"},
+        {"type": "kagawad", "name": "Name", "title": "Position", "committee": "Beautification and Cleanliness Committee, Barangay Disaster Risk Reduction Management", "image_path": r"https://raw.githubusercontent.com/EfrenLamosteJr/edoop_casestudy/88332146a003b7ee56069c5760400904cfdc21f1/build/Image_Resources/maykol2.png"},
+        {"type": "kagawad", "name": "Name", "title": "Position", "committee": "Peace and Order Committee", "image_path": r"https://raw.githubusercontent.com/EfrenLamosteJr/edoop_casestudy/88332146a003b7ee56069c5760400904cfdc21f1/build/Image_Resources/maykol2.png"},
+        # Add more officials here if needed
+    ]
+
+    def update_canvas_content(event=None):
+        nonlocal original_pil_image, canvas, bg_photo_image_ref, officials_placeholders
+        
+        # --- NEW: Dictionary to hold image references ---
+        # We MUST store these, or they will be garbage collected and disappear
+        canvas.official_images = {} 
+        
+        try:
+            if not canvas or not canvas.winfo_exists():
+                if "<Configure>" in parent_frame.bind():
+                    parent_frame.unbind("<Configure>")
+                return
+        except tk.TclError: return
+
+        # --- Load Original Image ONCE ---
+        if not original_pil_image:
+            try: 
+                response = requests.get(image_path)
+                response.raise_for_status() # Checks for download errors
+                image_data = io.BytesIO(response.content)
+                original_pil_image = Image.open(image_data)
+                
+            except Exception as e:
+                print(f"ERROR loading background image from URL: {e}")
+                # ... (rest of your error handling) ...
+                return
+
+        # --- Get Frame/Canvas Dimensions ---
+        try:
+            frame_width = parent_frame.winfo_width()
+            frame_height = parent_frame.winfo_height()
+            if frame_width <= 1 or frame_height <= 1:
+                parent_frame.after(100, update_canvas_content)
+                return
+        except tk.TclError: return
+
+        # --- Clear Canvas ---
+        canvas.delete("all")
+
+        # --- Reverted to your ORIGINAL scaling and cropping ---
+        img_width, img_height = original_pil_image.size
+        scale = max(frame_width / img_width, frame_height / img_height)
+        scaled_img_width = int(img_width * scale); scaled_img_height = int(img_height * scale)
+        resized_image = original_pil_image.resize((scaled_img_width, scaled_img_height), Image.Resampling.LANCZOS)
+        x_offset = (scaled_img_width - frame_width) // 2; y_offset = (scaled_img_height - frame_height) // 2
+        cropped_image = resized_image.crop((x_offset, y_offset, x_offset + frame_width, y_offset + frame_height))
+        translucent_bg_image = cropped_image.copy().convert("RGBA")
+        alpha = translucent_bg_image.split()[3]; alpha = alpha.point(lambda p: int(p * 0.7)); translucent_bg_image.putalpha(alpha)
+        canvas.bg_photo_image_ref = ImageTk.PhotoImage(translucent_bg_image)
+
+        # 1. Draw Background Image
+        canvas.create_image(0, 0, anchor='nw', image=canvas.bg_photo_image_ref, tags="background_image")
+
+        # --- Draw Welcome Text ---
+        welcome_line1 = "Welcome to Barangay Poblacion II!"
+        welcome_line2 = "Your digital gateway for barangay services."
+        font_name = "Segoe UI"; color_white = "white"; color_outline = "black"; outline_offset = 2
+        font_size_line1 = 30; font_size_line2 = 18; font_weight = "bold"
+        font_obj1 = tkFont.Font(family=font_name, size=font_size_line1, weight=font_weight)
+        font_obj2 = tkFont.Font(family=font_name, size=font_size_line2, weight=font_weight)
+        line1_height = font_obj1.metrics('linespace'); line2_height = font_obj2.metrics('linespace')
+        wrap_width_ratio = 0.7; actual_wrap_width = int(frame_width * wrap_width_ratio)
+        if actual_wrap_width < 1: actual_wrap_width = 1
+        center_y_block = frame_height * 0.25 
+        center_x = frame_width / 2
+        total_text_height = line1_height + line2_height + 10
+        y_pos_line1 = center_y_block - (total_text_height / 2) + (line1_height / 2)
+        y_pos_line2 = y_pos_line1 + (line1_height / 2) + 10 + (line2_height / 2)
+        o = outline_offset 
+        offsets = [
+            (-o, -o), (0, -o), (o, -o),
+            (-o, 0),          (o, 0),
+            (-o, o), (0, o), (o, o)
+        ]
+        # Line 1
+        for dx, dy in offsets: canvas.create_text(center_x + dx, y_pos_line1 + dy, text=welcome_line1, fill=color_outline, font=font_obj1, tags="welcome_text", justify="center", width=actual_wrap_width)
+        canvas.create_text(center_x, y_pos_line1, text=welcome_line1, fill=color_white, font=font_obj1, tags="welcome_text", justify="center", width=actual_wrap_width)
+        # Line 2
+        for dx, dy in offsets: canvas.create_text(center_x + dx, y_pos_line2 + dy, text=welcome_line2, fill=color_outline, font=font_obj2, tags="welcome_text", justify="center", width=actual_wrap_width)
+        canvas.create_text(center_x, y_pos_line2, text=welcome_line2, fill=color_white, font=font_obj2, tags="welcome_text", justify="center", width=actual_wrap_width)
+
+        # --- Draw Elected Officials Section ---
+        content_start_y = frame_height 
+        section_padding = 50
+        current_y = content_start_y + section_padding
+        
+        title_font = tkFont.Font(family=font_name, size=24, weight="bold")
+        name_font = tkFont.Font(family=font_name, size=18, weight="bold")
+        position_font = tkFont.Font(family=font_name, size=12, weight="normal")
+        committee_font = tkFont.Font(family=font_name, size=12, weight="normal")
+        placeholder_bg = "#E0E0E0"; text_color_dark = "#202020"
+
+        canvas.create_text(center_x, current_y, text="Elected Officials", font=title_font, fill=text_color_dark, tags="officials")
+        current_y += title_font.metrics('linespace') + 30
+
+        captain = officials[0]
+        placeholder_size_captain = 150
+        placeholder_x_captain = center_x - (placeholder_size_captain / 2); placeholder_y_captain = current_y
+        
+        # --- NEW: Try to load and draw captain's image ---
+        try:
+            response = requests.get(captain["image_path"]) # 'image_path' is now a URL
+            response.raise_for_status()
+            image_data = io.BytesIO(response.content)
+            pil_img = Image.open(image_data)
+
+            pil_img = pil_img.resize((placeholder_size_captain, placeholder_size_captain), Image.Resampling.LANCZOS)
+            tk_img = ImageTk.PhotoImage(pil_img)
+            
+            # Store the reference and draw the image
+            canvas.official_images['captain'] = tk_img 
+            canvas.create_image(center_x, placeholder_y_captain, anchor="n", image=tk_img, tags="officials")
+        
+        except Exception as e:
+            print(f"Error loading captain image: {e}")
+            # Fallback: Draw the grey placeholder
+            canvas.create_rectangle(placeholder_x_captain, placeholder_y_captain, placeholder_x_captain + placeholder_size_captain, placeholder_y_captain + placeholder_size_captain, fill=placeholder_bg, outline="", tags="officials")
+            canvas.create_text(center_x, placeholder_y_captain + (placeholder_size_captain/2), text="Placeholder", fill="gray", font=("Arial", 10), anchor="center", tags="officials")
+        # --- END NEW ---
+        
+        # This text starts BELOW the placeholder/image
+        current_y += placeholder_size_captain + 25 
+        canvas.create_text(center_x, current_y, text=captain["title"], font=position_font, fill="orange", tags="officials", anchor="n")
+        current_y += position_font.metrics('linespace')
+        canvas.create_text(center_x, current_y, text=captain["name"], font=name_font, fill=text_color_dark, tags="officials", anchor="n")
+        current_y += name_font.metrics('linespace') + 5
+        committee_text_id_capt = canvas.create_text(center_x, current_y, text=captain["committee"], font=committee_font, fill=text_color_dark, tags="officials", anchor="n", width=frame_width*0.8)
+        bbox_capt = canvas.bbox(committee_text_id_capt) 
+        current_y += (bbox_capt[3] - bbox_capt[1] if bbox_capt else committee_font.metrics('linespace')) + section_padding
+
+        kagawads = officials[1:]
+        num_columns = 3; column_width = frame_width / num_columns
+        placeholder_size_kagawad = 100; kagawad_start_y = current_y
+        max_row_height = 0 
+
+        for i, kagawad in enumerate(kagawads):
+            col = i % num_columns
+            row = i // num_columns
+
+            if col == 0 and i > 0:
+                kagawad_start_y += max_row_height + section_padding 
+                max_row_height = 0 
+
+            base_x = (col * column_width) + (column_width / 2)
+            base_y = kagawad_start_y
+            ph_y = base_y
+            
+            # --- NEW: Try to load and draw kagawad's image ---
+            try:
+                response = requests.get(kagawad["image_path"]) # 'image_path' is now a URL
+                response.raise_for_status()
+                image_data = io.BytesIO(response.content)
+                pil_img = Image.open(image_data)
+
+                pil_img = pil_img.resize((placeholder_size_kagawad, placeholder_size_kagawad), Image.Resampling.LANCZOS)
+                tk_img = ImageTk.PhotoImage(pil_img)
+                
+                # Store the reference (using a unique key) and draw the image
+                image_key = f'kagawad_{i}'
+                canvas.official_images[image_key] = tk_img
+                canvas.create_image(base_x, ph_y, anchor="n", image=tk_img, tags="officials")
+
+            except Exception as e:
+                # We can print the error, but we'll still draw the placeholder
+                if kagawad["image_path"]: # Only print error if a path was provided
+                     print(f"Error loading image for {kagawad['name']}: {e}")
+                # Fallback: Draw the grey placeholder
+                ph_x = base_x - (placeholder_size_kagawad / 2)
+                canvas.create_rectangle(ph_x, ph_y, ph_x + placeholder_size_kagawad, ph_y + placeholder_size_kagawad, fill=placeholder_bg, outline="", tags="officials")
+                canvas.create_text(base_x, ph_y + (placeholder_size_kagawad/2), text="Placeholder", fill="gray", font=("Arial", 9), anchor="center", tags="officials")
+            # --- END NEW ---
+            
+            text_y = ph_y + placeholder_size_kagawad + 20 # Text starts below the image/placeholder
+            canvas.create_text(base_x, text_y, text=kagawad["title"], font=position_font, fill="orange", tags="officials", anchor="n")
+            text_y += position_font.metrics('linespace')
+            canvas.create_text(base_x, text_y, text=kagawad["name"], font=name_font, fill=text_color_dark, tags="officials", anchor="n")
+            text_y += name_font.metrics('linespace') + 5
+            committee_text_id = canvas.create_text( base_x, text_y, text=kagawad["committee"], font=committee_font, fill=text_color_dark, tags="officials", anchor="n", width=column_width * 0.8)
+            text_bbox = canvas.bbox(committee_text_id)
+            committee_height = (text_bbox[3] - text_bbox[1]) if text_bbox else committee_font.metrics('linespace') * (1 + kagawad["committee"].count('\n'))
+            text_y += committee_height
+            max_row_height = max(max_row_height, text_y - base_y)
+
+        current_y = kagawad_start_y + max_row_height + section_padding
+
+        # --- Draw the 'white part' background ---
+        content_bg_color = "#F0F0F0" 
+        canvas.create_rectangle(0, content_start_y, frame_width, current_y, 
+                                fill=content_bg_color, 
+                                outline="", 
+                                tags="content_bg")
+        
+        canvas.tag_lower("content_bg", "officials")
+
+        # --- Update Scroll Region ---
+        try:
+            scroll_region = (0, 0, frame_width, current_y + 50) 
+            canvas.configure(scrollregion=scroll_region)
+        except tk.TclError as e:
+            print(f"Error setting scrollregion: {e}")
+            canvas.configure(scrollregion=(0, 0, frame_width, frame_height))
+
+    # --- Create Canvas and Scrollbar ---
+    canvas = tk.Canvas(parent_frame, highlightthickness=0, bd=0)
+    canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+    scrollbar = ctk.CTkScrollbar(parent_frame, command=canvas.yview)
+    scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+    canvas.configure(yscrollcommand=scrollbar.set)
+    def _on_mousewheel(event):
+        # Platform-independent scroll direction
+        delta = 0
+        if event.num == 5 or event.delta < 0: delta = 1  # Scroll down
+        elif event.num == 4 or event.delta > 0: delta = -1 # Scroll up
+        if delta != 0: canvas.yview_scroll(delta, "units")
+
+    # Bind across platforms
+    root = parent_frame.winfo_toplevel() # Get the root window to bind globally if needed
+    root.bind_all("<MouseWheel>", _on_mousewheel, add='+') # Windows/macOS
+    root.bind_all("<Button-4>", _on_mousewheel, add='+')   # Linux scroll up
+    root.bind_all("<Button-5>", _on_mousewheel, add='+')   # Linux scroll down
 
 
-def create_about_us_page(parent_frame):
-    """Creates the content for the About Us page."""
-    content_label = ctk.CTkLabel(parent_frame, text="This is the About Us page.", font=ctk.CTkFont(size=20), text_color="gray")
-    content_label.place(relx=0.5, rely=0.5, anchor="center")
+    # --- Initial call & Binding for resizing ---
+    parent_frame.after_idle(update_canvas_content) # Use after_idle
+    parent_frame.bind("<Configure>", update_canvas_content)
 
-
-def create_contact_us_page(parent_frame):
-    """Creates the content for the Contact Us page."""
-    content_label = ctk.CTkLabel(parent_frame, text="Contact information goes here.", font=ctk.CTkFont(size=20), text_color="gray")
-    content_label.place(relx=0.5, rely=0.5, anchor="center")
-
+    print("--- Exiting create_home_page (Reverted Scaling, Content Below) ---")
+    # --- END OF FUNCTION ---
 
 def create_services_page(parent_frame):
     """Creates the services page with document request functionality."""
@@ -125,15 +374,15 @@ def create_services_page(parent_frame):
                 ("Purpose of Request", "e.g., For employment, for travel, etc.", "text"),
             ]
         },
-            "Barangay Building Clearance": {
-                "title": "Barangay Building Clearance Requirements",
-                "content": [
-            ("Valid ID", "Upload a clear image of any Government Issued ID addressed to Poblacion 2 (e.g., Driver's License, Voter's ID, Postal ID)", "file"),
-            ("2nd Valid ID", "Upload a clear image of any Government Issued ID addressed to Poblacion 2 (e.g., Driver's License, Voter's ID, Postal ID)", "file"),
-            ("DTI Registration", "Upload a clear picture or copy of your DTI certificate.", "file"),
-            ("Proof of Payment", "Upload a screenshot of your payment confirmation.", "file"),
-            ("Purpose of Request", "e.g., For building construction permit.", "text"),
-        ]
+        "Barangay Building Clearance": {
+            "title": "Barangay Building Clearance Requirements",
+            "content": [
+                ("Valid ID", "Upload a clear image of any Government Issued ID addressed to Poblacion 2 (e.g., Driver's License, Voter's ID, Postal ID)", "file"),
+                ("2nd Valid ID", "Upload a clear image of any Government Issued ID addressed to Poblacion 2 (e.g., Driver's License, Voter's ID, Postal ID)", "file"),
+                ("DTI Registration", "Upload a clear picture or copy of your DTI certificate.", "file"),
+                ("Proof of Payment", "Upload a screenshot of your payment confirmation.", "file"),
+                ("Purpose of Request", "e.g., For building construction permit.", "text"),
+            ]
         },
         "Barangay Business Clearance": {
             "title": "Barangay Business Clearance Requirements",
@@ -415,8 +664,8 @@ def create_services_page(parent_frame):
 
                 upload_button.configure(
                     command=lambda s_lbl=file_status_label, p_lbl=preview_label, req_name=subtitle: handle_upload(s_lbl,
-                                                                                                                  p_lbl,
-                                                                                                                  req_name))
+                                                                                                                   p_lbl,
+                                                                                                                   req_name))
 
                 upload_button.pack(side="left", anchor="w")
                 file_status_label.pack(side="left", anchor="w", padx=10)
@@ -428,8 +677,8 @@ def create_services_page(parent_frame):
                     height=80,
                     corner_radius=8,
                     font=ctk.CTkFont(size=13),
-                    border_width=1,          # <-- ADDED BORDER
-                    border_color="#9A9A9A"   # <-- ADDED BORDER COLOR
+                    border_width=1,  # <-- ADDED BORDER
+                    border_color="#9A9A9A"  # <-- ADDED BORDER COLOR
                 )
                 textbox.pack(fill="x", pady=(5, 15), padx=(15, 0))
 
@@ -675,8 +924,20 @@ def create_profile_page(parent_frame):
     upload_btn.configure(command=upload_picture)
     display_image(new_picture_path["path"])
 
+def create_my_requests_page(parent_frame):
+    """Creates the content for the My Requests page."""
+    # Clear any previous widgets in the frame, just in case
+    for widget in parent_frame.winfo_children():
+        widget.destroy()
+
+    content_label = ctk.CTkLabel(parent_frame,
+                                 text="This page will show all your requests (pending and complete).",
+                                 font=ctk.CTkFont(size=20),
+                                 text_color="gray")
+    content_label.place(relx=0.5, rely=0.5, anchor="center")
+    
 # =============================================================================
-# --- MAIN APPLICATION ---
+# --- MAIN APPLICATION (MODIFIED) ---
 # =============================================================================
 
 def start_mainhomepage(username=None):
@@ -694,30 +955,60 @@ def start_mainhomepage(username=None):
     HEADER_BG, NAV_INACTIVE_COLOR, NAV_ACTIVE_COLOR, TEXT_COLOR = "#3498db", "#FFD700", "#E74C3C", "black"
 
     def navigate_to(page_name):
-        for widget in content_frame.winfo_children(): widget.destroy()
+        print(f"\n--- Navigating to: {page_name} ---") # DEBUG
+
+        # --- Unbind configure ONLY from content_frame ---
+        bound_events = content_frame.bind() # Get bound events first
+        # Check if bound_events is not None *before* using 'in'
+        if bound_events and "<Configure>" in bound_events:
+             print("Unbinding <Configure> from content_frame") # DEBUG
+             content_frame.unbind("<Configure>")
+        else:
+             # This will now correctly handle the case where bind() returns None or an empty tuple
+             print("No <Configure> binding found on content_frame to unbind.") # DEBUG
+        # --- End Unbind ---
+
+        # Now destroy widgets
+        print("Destroying old widgets...") # DEBUG
+        widgets_to_destroy = content_frame.winfo_children()
+        for widget in widgets_to_destroy:
+            widget.destroy()
+        print(f"Destroyed {len(widgets_to_destroy)} old widgets.") # DEBUG
+
+        # --- Recreate page content ---
         if page_name == "Home":
+            print("Calling create_home_page...") # DEBUG
             create_home_page(content_frame)
-        elif page_name == "About Us":
-            create_about_us_page(content_frame)
-        elif page_name == "Contact Us":
-            create_contact_us_page(content_frame)
         elif page_name == "Services":
+            print("Calling create_services_page...") # DEBUG
             create_services_page(content_frame)
+        elif page_name == "My Requests":
+            print("Calling create_my_requests_page...") # DEBUG
+            create_my_requests_page(content_frame)
         elif page_name == "Profile":
-            create_profile_page(content_frame)  # No username parameter needed now
-        buttons = {"Home": home_btn, "About Us": about_btn, "Contact Us": contact_btn, "Services": services_btn,
-                   "Profile": profile_btn}
+            print("Calling create_profile_page...") # DEBUG
+            create_profile_page(content_frame)
+        print("Page creation function called.") # DEBUG
+
+
+        # --- Update Button States ---
+        buttons = {"Home": home_btn, "Services": services_btn, "My Requests": my_requests_btn} # Exclude profile btn
+
         for name, btn in buttons.items():
             if name == page_name:
-                if name in ["Home", "About Us", "Contact Us", "Services"]:
-                    btn.configure(fg_color=NAV_ACTIVE_COLOR, text_color="white", hover_color=NAV_ACTIVE_COLOR)
-                else:
-                    btn.configure(text_color_disabled="white")
+                btn.configure(fg_color=NAV_ACTIVE_COLOR, text_color="white", hover_color=NAV_ACTIVE_COLOR)
             else:
-                if name in ["Home", "About Us", "Contact Us", "Services"]:
-                    btn.configure(fg_color=NAV_INACTIVE_COLOR, text_color=TEXT_COLOR, hover_color="#F39C12")
-                else:
-                    btn.configure(text_color_disabled="#d0d0d0")
+                btn.configure(fg_color=NAV_INACTIVE_COLOR, text_color=TEXT_COLOR, hover_color="#F39C12")
+
+        # Handle profile button state separately
+        if page_name == "Profile":
+             profile_btn.configure(text_color="white")
+             print("Set Profile button to active state.") # DEBUG
+        else:
+            profile_btn.configure(text_color=ctk.ThemeManager.theme["CTkButton"]["text_color"])
+            print("Set Profile button to inactive/default state.") # DEBUG
+        print("Button states updated.") # DEBUG
+
 
     header_frame = ctk.CTkFrame(root, height=80, fg_color=HEADER_BG, corner_radius=0)
     header_frame.pack(fill="x", side="top")
@@ -731,10 +1022,7 @@ def start_mainhomepage(username=None):
 
         logo_url = "https://raw.githubusercontent.com/EfrenLamosteJr/edoop_casestudy/5ef8907a670294733dfb769d07195e84db937dd9/build/Image_Resources/P2SERVE_LOGO.png"
         pil_img = load_image_from_url(logo_url)
-
-        # Use CTkImage with desired display size (e.g., 60x60 px)
         logo_img = ctk.CTkImage(light_image=pil_img, size=(60, 60))
-
         logo_lbl = ctk.CTkLabel(header_frame, image=logo_img, text="", fg_color=HEADER_BG)
         logo_lbl.image = logo_img  # keep reference
         logo_lbl.place(relx=0.01, rely=0.5, anchor="w")
@@ -767,11 +1055,13 @@ def start_mainhomepage(username=None):
         btn.pack(side="left", fill="both", expand=True)
         return btn
 
-    home_btn = create_nav_button("Home");
-    about_btn = create_nav_button("About Us");
-    contact_btn = create_nav_button("Contact Us");
+    # --- MODIFIED: Button creation ---
+    home_btn = create_nav_button("Home")
     services_btn = create_nav_button("Services")
-    content_frame = ctk.CTkFrame(root, fg_color="white", corner_radius=0)
+    my_requests_btn = create_nav_button("My Requests")  # <-- ADDED
+    # --- END OF MODIFICATION ---
+
+    content_frame = ctk.CTkFrame(root, fg_color="transparent", corner_radius=0) # Make frame transparent
     content_frame.pack(fill="both", expand=True)
     navigate_to("Home")
     root.update_idletasks()
