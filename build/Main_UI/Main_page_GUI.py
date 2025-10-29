@@ -125,14 +125,15 @@ def create_services_page(parent_frame):
                 ("Purpose of Request", "e.g., For employment, for travel, etc.", "text"),
             ]
         },
-        "Barangay Building Clearance": {
-            "title": "Barangay Building Clearance Requirements",
-            "content": [
-                ("Valid ID", "Upload a clear image of any Government Issued ID addressed to Poblacion 2 (e.g., Driver's License, Voter's ID, Postal ID)", "file"),
-                ("2nd Valid ID", "Upload a clear image of any Government Issued ID addressed to Poblacion 2 (e.g., Driver's License, Voter's ID, Postal ID)", "file"),
-                ("Proof of Payment", "Upload a screenshot of your payment confirmation.", "file"),
-                ("Purpose of Request", "e.g., For building construction permit.", "text"),
-            ]
+            "Barangay Building Clearance": {
+                "title": "Barangay Building Clearance Requirements",
+                "content": [
+            ("Valid ID", "Upload a clear image of any Government Issued ID addressed to Poblacion 2 (e.g., Driver's License, Voter's ID, Postal ID)", "file"),
+            ("2nd Valid ID", "Upload a clear image of any Government Issued ID addressed to Poblacion 2 (e.g., Driver's License, Voter's ID, Postal ID)", "file"),
+            ("DTI Registration", "Upload a clear picture or copy of your DTI certificate.", "file"),
+            ("Proof of Payment", "Upload a screenshot of your payment confirmation.", "file"),
+            ("Purpose of Request", "e.g., For building construction permit.", "text"),
+        ]
         },
         "Barangay Business Clearance": {
             "title": "Barangay Business Clearance Requirements",
@@ -270,19 +271,19 @@ def create_services_page(parent_frame):
         if not doc_name: return
 
         expected_files = []
-        expected_texts = {} # Store as dict to hold placeholder
-        
+        expected_texts = {}  # Store as dict to hold placeholder
+
         for item in requirements_data[doc_name]["content"]:
             if len(item) == 3:
                 subtitle, text, req_type = item
             else:
                 subtitle, text = item
-                req_type = "file" 
-            
+                req_type = "file"
+
             if req_type == "file":
                 expected_files.append(subtitle)
             elif req_type == "text":
-                expected_texts[subtitle] = text # Key = name, Value = placeholder
+                expected_texts[subtitle] = text  # Key = name, Value = placeholder
 
         # Check for missing files
         missing_files = [req for req in expected_files if req not in uploaded_files]
@@ -294,12 +295,12 @@ def create_services_page(parent_frame):
         # Get text inputs and check for missing ones
         purpose_text = ""
         missing_texts = []
-        
+
         for req_name, placeholder in expected_texts.items():
             textbox_widget = text_inputs.get(req_name)
             if textbox_widget:
                 text_content = textbox_widget.get("1.0", "end-1c").strip()
-                
+
                 # Check if empty OR still has placeholder
                 if not text_content or text_content == placeholder:
                     missing_texts.append(req_name)
@@ -307,7 +308,7 @@ def create_services_page(parent_frame):
                     if req_name == "Purpose of Request":
                         purpose_text = text_content
             else:
-                missing_texts.append(req_name) 
+                missing_texts.append(req_name)
 
         if missing_texts:
             show_info_popup("Incomplete Requirements", "Please fill in all required fields. Missing:\n\n" + "\n".join(
@@ -321,14 +322,18 @@ def create_services_page(parent_frame):
             show_info_popup("Error", "Unable to identify user. Please log in again.")
             return
 
+        # Collect both ID paths
         valid_id_path = uploaded_files.get("Valid ID")
+        second_valid_id_path = uploaded_files.get("2nd Valid ID")
         prof_of_payment_path = uploaded_files.get("Proof of Payment")
+        dti_path = uploaded_files.get("DTI Registration")
 
-        if insert_document_request(user_id, doc_name, valid_id_path, prof_of_payment_path, purpose_text):
+        # Insert with both IDs and purpose
+        if insert_document_request(user_id, doc_name, valid_id_path, second_valid_id_path, dti_path, prof_of_payment_path, purpose_text):
             show_info_popup("Submission Successful",
                             f"Your request for '{doc_name}' has been submitted and is pending approval.")
             # Reset form after submission
-            display_requirements(document_name)
+            display_requirements(doc_name)
         else:
             show_info_popup("Error", "Failed to submit request. Please try again.")
 
@@ -358,14 +363,14 @@ def create_services_page(parent_frame):
             preview_label.configure(image=None, text="No Preview\n(PDF/File)")
             status_label.configure(text=f"Uploaded: {filename}", text_color="green")
 
-            
+
     # --- MODIFIED: display_requirements now adds border and placeholder ---
     def display_requirements(document_name):
         uploaded_files.clear()
         text_inputs.clear()
         hide_tooltip()
         for widget in requirements_frame.winfo_children(): widget.destroy()
-        
+
         req_info = requirements_data.get(document_name)
         if not req_info: return
 
@@ -378,7 +383,7 @@ def create_services_page(parent_frame):
                 subtitle, text, req_type = item
             else:
                 subtitle, text = item
-                req_type = "file" 
+                req_type = "file"
 
             title_frame = ctk.CTkFrame(requirements_frame, fg_color="transparent")
             title_frame.pack(fill="x", pady=(10, 2), anchor="w")
@@ -419,25 +424,25 @@ def create_services_page(parent_frame):
             elif req_type == "text":
                 # --- MODIFIED TEXT BOX block ---
                 textbox = ctk.CTkTextbox(
-                    requirements_frame, 
-                    height=80, 
-                    corner_radius=8, 
+                    requirements_frame,
+                    height=80,
+                    corner_radius=8,
                     font=ctk.CTkFont(size=13),
                     border_width=1,          # <-- ADDED BORDER
                     border_color="#9A9A9A"   # <-- ADDED BORDER COLOR
                 )
                 textbox.pack(fill="x", pady=(5, 15), padx=(15, 0))
-                
+
                 # Add placeholder text and color
                 textbox.insert("1.0", text)
                 textbox.configure(text_color=placeholder_color)
-                
+
                 # Bind focus events for placeholder logic
                 textbox.bind("<FocusIn>", lambda event, tb=textbox, ph=text: on_textbox_focus_in(event, tb, ph))
                 textbox.bind("<FocusOut>", lambda event, tb=textbox, ph=text: on_textbox_focus_out(event, tb, ph))
-                
+
                 text_inputs[subtitle] = textbox
-        
+
         ctk.CTkButton(requirements_frame, text="Submit All Documents", font=ctk.CTkFont(size=16, weight="bold"),
                       height=50, command=submit_all_documents).pack(fill="x", pady=(30, 10))
         scrollable_frame.update_idletasks()

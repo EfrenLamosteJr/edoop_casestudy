@@ -7,7 +7,6 @@ from io import BytesIO
 
 
 def go_to_resident_login(current_window):
-    """Closes the admin login and opens the resident login window."""
     print("Switching back to Resident Login...")
     current_window.destroy()
     from Log_In_GUI import start_login1
