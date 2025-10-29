@@ -112,6 +112,12 @@ def create_home_page(parent_frame):
         {"type": "kagawad", "name": "Name", "title": "Position", "committee": "Social Services, Management and Information Systems", "image_path": r"https://raw.githubusercontent.com/EfrenLamosteJr/edoop_casestudy/88332146a003b7ee56069c5760400904cfdc21f1/build/Image_Resources/maykol2.png"},
         {"type": "kagawad", "name": "Name", "title": "Position", "committee": "Beautification and Cleanliness Committee, Barangay Disaster Risk Reduction Management", "image_path": r"https://raw.githubusercontent.com/EfrenLamosteJr/edoop_casestudy/88332146a003b7ee56069c5760400904cfdc21f1/build/Image_Resources/maykol2.png"},
         {"type": "kagawad", "name": "Name", "title": "Position", "committee": "Peace and Order Committee", "image_path": r"https://raw.githubusercontent.com/EfrenLamosteJr/edoop_casestudy/88332146a003b7ee56069c5760400904cfdc21f1/build/Image_Resources/maykol2.png"},
+        {"type": "kagawad", "name": "Name", "title": "Position", "committee": "Peace and Order Committee", "image_path": r"https://raw.githubusercontent.com/EfrenLamosteJr/edoop_casestudy/88332146a003b7ee56069c5760400904cfdc21f1/build/Image_Resources/maykol2.png"},
+        {"type": "kagawad", "name": "Name", "title": "Position", "committee": "Peace and Order Committee", "image_path": r"https://raw.githubusercontent.com/EfrenLamosteJr/edoop_casestudy/88332146a003b7ee56069c5760400904cfdc21f1/build/Image_Resources/maykol2.png"},
+        {"type": "kagawad", "name": "Name", "title": "Position", "committee": "Peace and Order Committee", "image_path": r"https://raw.githubusercontent.com/EfrenLamosteJr/edoop_casestudy/88332146a003b7ee56069c5760400904cfdc21f1/build/Image_Resources/maykol2.png"},
+        {"type": "kagawad", "name": "Name", "title": "Position", "committee": "Peace and Order Committee", "image_path": r"https://raw.githubusercontent.com/EfrenLamosteJr/edoop_casestudy/88332146a003b7ee56069c5760400904cfdc21f1/build/Image_Resources/maykol2.png"},
+        {"type": "kagawad", "name": "Name", "title": "Position", "committee": "Peace and Order Committee", "image_path": r"https://raw.githubusercontent.com/EfrenLamosteJr/edoop_casestudy/88332146a003b7ee56069c5760400904cfdc21f1/build/Image_Resources/maykol2.png"},
+
         # Add more officials here if needed
     ]
 
@@ -205,7 +211,7 @@ def create_home_page(parent_frame):
         name_font = tkFont.Font(family=font_name, size=18, weight="bold")
         position_font = tkFont.Font(family=font_name, size=12, weight="normal")
         committee_font = tkFont.Font(family=font_name, size=12, weight="normal")
-        placeholder_bg = "#E0E0E0"; text_color_dark = "#202020"
+        placeholder_bg = "#E0E0E0"; text_color_dark = "#FFFFFF"
 
         canvas.create_text(center_x, current_y, text="Elected Officials", font=title_font, fill=text_color_dark, tags="officials")
         current_y += title_font.metrics('linespace') + 30
@@ -300,13 +306,58 @@ def create_home_page(parent_frame):
 
         current_y = kagawad_start_y + max_row_height + section_padding
 
-        # --- Draw the 'white part' background ---
-        content_bg_color = "#F0F0F0" 
-        canvas.create_rectangle(0, content_start_y, frame_width, current_y, 
-                                fill=content_bg_color, 
-                                outline="", 
-                                tags="content_bg")
+        # Background of Elected Officials #
+        try:
+            # 1. Define Your Gradient Colors (You can change these!)
+            # I'm guessing your header blue is something like this:
+            color_start_hex = "#87CEFA"  # Bright blue (like a header)
+            color_end_hex   = "#012A4A"  # Dark navy blue
+
+            # 2. Convert hex colors to (R, G, B) tuples
+            r_s, g_s, b_s = (int(color_start_hex.lstrip('#')[i:i+2], 16) for i in (0, 2, 4))
+            r_e, g_e, b_e = (int(color_end_hex.lstrip('#')[i:i+2], 16) for i in (0, 2, 4))
+
+            # 3. Get the dimensions for the gradient
+            gradient_width = frame_width
+            gradient_height = current_y - content_start_y # This is the height of the whole content section
+            
+            # Make sure width/height are at least 1
+            if gradient_width < 1: gradient_width = 1
+            if gradient_height < 1: gradient_height = 1
+
+            # 4. Create a new PIL Image in memory
+            pil_gradient = Image.new("RGB", (gradient_width, gradient_height))
+            draw = ImageDraw.Draw(pil_gradient)
+
+            # 5. Draw the gradient one line at a time
+            for y in range(gradient_height):
+                # Calculate how far down the gradient we are (0.0 to 1.0)
+                ratio = y / gradient_height
+                
+                # "Interpolate" the color for this line
+                r = int(r_s * (1 - ratio) + r_e * ratio)
+                g = int(g_s * (1 - ratio) + g_e * ratio)
+                b = int(b_s * (1 - ratio) + b_e * ratio)
+                
+                # Draw the 1-pixel-high line
+                draw.line([(0, y), (gradient_width, y)], fill=(r, g, b))
+
+            # 6. Convert the PIL image to a Tkinter PhotoImage
+            #    We MUST store this on canvas or it gets garbage-collected
+            canvas.gradient_bg_ref = ImageTk.PhotoImage(pil_gradient)
+
+            # 7. Draw the new gradient image onto the canvas
+            canvas.create_image(0, content_start_y, anchor='nw', image=canvas.gradient_bg_ref, tags="content_bg")
+
+        except Exception as e:
+            print(f"ERROR creating gradient: {e}")
+            # If the gradient fails, draw a solid dark blue rectangle instead
+            canvas.create_rectangle(0, content_start_y, frame_width, current_y, 
+                                     fill="#012A4A", # Fallback solid color
+                                     outline="", 
+                                     tags="content_bg")
         
+        # This line is the same as before and still works!
         canvas.tag_lower("content_bg", "officials")
 
         # --- Update Scroll Region ---
