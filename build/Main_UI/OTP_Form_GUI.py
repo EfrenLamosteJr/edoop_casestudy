@@ -2,7 +2,6 @@
 import customtkinter as ctk
 import tkinter as tk
 from tkinter import messagebox
-import re
 import random
 import smtplib
 from email.message import EmailMessage
@@ -46,6 +45,7 @@ def start_otppage(firstname, lastname, username, co_number, email, b_address, pa
     # --- OTP Storage ---
     generated_otp = None
 
+    #--- NAKITA KO TO SA YOUTUBE MAGSSEND SA GMAIL
     def otp_genetarot():
         nonlocal generated_otp
         generated_otp = ""
@@ -61,8 +61,8 @@ def start_otppage(firstname, lastname, username, co_number, email, b_address, pa
             server = smtplib.SMTP('smtp.gmail.com', 587)
             server.starttls()
 
-            from_email = "barangaypoblacion2eservice@gmail.com"
-            server.login(from_email, 'veorjdapcuglikhu')
+            from_email = "efrenlamoste5@gmail.com"
+            server.login(from_email, 'zqpq njoj xubi pjzp')
             to_mail = email
 
             msg = EmailMessage()
@@ -176,7 +176,7 @@ def start_otppage(firstname, lastname, username, co_number, email, b_address, pa
     close_btn.place(relx=1.0, rely=0.0, anchor="ne")
 
     root.mainloop()
-
+#------ DITO PALANG SSAVE YUNG DATA GALING SA REGISTER PAG TAMA OTP
 def do_otp(generated_otp, otp, firstname, lastname, username, co_number, email, b_address, password, window):
     if generated_otp == otp:
         signup(firstname, lastname, username, co_number, email, b_address, password)

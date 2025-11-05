@@ -1,6 +1,7 @@
 # Main_page_GUI.py
 import customtkinter as ctk
 import tkinter as tk
+import tkinter.font as tkFont
 from tkinter import filedialog
 import os
 from database_connector import get_connection
@@ -13,17 +14,14 @@ from auth import get_user_id_by_username, insert_document_request, get_full_user
 current_username = None
 
 
-# --- DATABASE FUNCTIONS ---
+# --- DATABASE FUNCTIONS --- DAPAT SA AUTH TO KASO NAHIHILO NA AKO E
+# ----- KUNIN DITO YUNG DATA GALING SA PROFILE ----- PAG WALA NON PA TO
 def get_current_user_data(username):
     print(f"Fetching data for username: {username}")  # para sa debugging
     conn = get_connection()
     cur = conn.cursor()
     try:
-        cur.execute("""
-            SELECT firstname, lastname, profile_picture_path
-            FROM resident
-            WHERE username = %s
-        """, (username,))
+        cur.execute(""" SELECT firstname, lastname, profile_picture_path FROM resident WHERE username = %s """, (username,))
         row = cur.fetchone()
         print(f"Query result: {row}")  # para sa debugging
         if row:
@@ -40,7 +38,7 @@ def get_current_user_data(username):
         cur.close()
         conn.close()
 
-
+#------ ITO LALAGAY NG PICTURE SA PROFILE
 def save_user_profile_data(picture_path):
     global current_username
     if not current_username:
@@ -48,10 +46,7 @@ def save_user_profile_data(picture_path):
     conn = get_connection()
     cur = conn.cursor()
     try:
-        cur.execute(""" UPDATE resident
-            SET profile_picture_path = %s
-            WHERE username = %s""",
-                    (picture_path, current_username))
+        cur.execute(""" UPDATE resident SET profile_picture_path = %s WHERE username = %s""", (picture_path, current_username))
         conn.commit()
         print(f"Profile picture path saved for {current_username}: {picture_path}")  # para sa debugging
         return True
@@ -62,7 +57,7 @@ def save_user_profile_data(picture_path):
         cur.close()
         conn.close()
 
-
+#----- AALAMIN KUNG APPROVE NA ACCOUNT NILA KASI PAG HINDI DI MAOOPEN MGA FOLDER SA SERVICE
 def get_user_status_by_username(username):
     conn = get_connection()
     cur = conn.cursor()
@@ -79,18 +74,6 @@ def get_user_status_by_username(username):
 
 
 # --- PAGE CREATION FUNCTIONS ---
-
-# Import ImageTk at the top of your file if not already there
-from PIL import Image, ImageTk # Make sure ImageTk is imported
-
-# Import ImageTk at the top of your file if not already there
-from PIL import Image, ImageTk # Make sure ImageTk is imported
-
-# Import ImageTk at the top of your file if not already there
-from PIL import Image, ImageTk # Make sure ImageTk is imported
-
-import tkinter.font as tkFont
-
 def create_home_page(parent_frame):
     """Creates the content for the Home page using a scrollable Canvas."""
     print("--- Entering create_home_page (Reverted Scaling, Content Below) ---") # Changed log
@@ -115,7 +98,6 @@ def create_home_page(parent_frame):
         {"type": "kagawad", "name": "Michael Sumala", "title": "Position", "committee": "Peace and Order Committee", "image_path": r"https://raw.githubusercontent.com/EfrenLamosteJr/edoop_casestudy/88332146a003b7ee56069c5760400904cfdc21f1/build/Image_Resources/maykol2.png"},
         {"type": "kagawad", "name": "Topher Garcia", "title": "Position", "committee": "Peace and Order Committee", "image_path": r"https://raw.githubusercontent.com/EfrenLamosteJr/edoop_casestudy/88332146a003b7ee56069c5760400904cfdc21f1/build/Image_Resources/maykol2.png"},
 
-        # Add more officials here if needed
     ]
 
     def update_canvas_content(event=None):
@@ -867,7 +849,7 @@ def create_profile_page(parent_frame):
     add_info_label.grid(row=current_row, column=0, columnspan=2, sticky="ew", pady=(0, 15));
     current_row += 1
 
-    # Check verification status
+    #---- DITO LALAGAY YUNG KUNG APPROVED NA YUNG ACCOUNT O HINDI PA MAG OOPEN MGA TEXTBOX PAG OK NA DI NA MABABAGO NA INPUT
     verification_status = user.get("verification_status", "not_verified")
     is_approved = verification_status == "approved"
     is_pending = verification_status == "pending"
@@ -953,7 +935,7 @@ def create_profile_page(parent_frame):
     status_label.grid(row=current_row, column=0, columnspan=2, sticky="w", pady=(10, 5));
     current_row += 1
 
-    # --- Submit Button (Only if not approved and not pending) ---
+    # --- Submit Button (KUNG NONE PA YUNG STATUS KASI YUNG SINET KO NA DEFAULT) ---
     if not is_approved and not is_pending:
         submit_info_btn = ctk.CTkButton(details_frame, text="Verify Account",
                                         command=lambda: submit_verification(fields, status_label))
@@ -1006,13 +988,83 @@ def create_profile_page(parent_frame):
     display_image(new_picture_path["path"])
 
 def create_my_requests_page(parent_frame):
-    """Creates the content for the My Requests page."""
-    # Clear any previous widgets in the frame, just in case
+    """Creates the content for the My Requests page, showing user's document request history."""
+    from auth import get_user_document_requests, get_user_id_by_username  # Import here to avoid circular imports
+
+    global current_username
+    if not current_username:
+        ctk.CTkLabel(parent_frame, text="Please log in first.", text_color="red").pack(pady=20)
+        return
+
+    user_id = get_user_id_by_username(current_username)
+    if not user_id:
+        ctk.CTkLabel(parent_frame, text="Error: Unable to identify user.", text_color="red").pack(pady=20)
+        return
+
+    # Fetch user's requests
+    user_requests = get_user_document_requests(user_id)
+
+    # Clear any previous widgets
     for widget in parent_frame.winfo_children():
         widget.destroy()
 
+    scrollable_frame = ctk.CTkScrollableFrame(parent_frame, fg_color="transparent")
+    scrollable_frame.pack(fill="both", expand=True, padx=20, pady=20)
+
+    # Title
+    title_label = ctk.CTkLabel(scrollable_frame, text="My Document Requests", font=ctk.CTkFont(size=24, weight="bold"), anchor="w")
+    title_label.pack(fill="x", pady=(0, 20))
+
+    if not user_requests:
+        # No requests message
+        no_requests_frame = ctk.CTkFrame(scrollable_frame, fg_color="#F8F9FA", border_color="#DEE2E6", border_width=1, corner_radius=10)
+        no_requests_frame.pack(fill="x", pady=(20, 0))
+        ctk.CTkLabel(no_requests_frame, text="📄 You have no document requests yet.", font=ctk.CTkFont(size=16), text_color="#6C757D").pack(pady=20, padx=20)
+    else:
+        # Requests list
+        container = ctk.CTkFrame(scrollable_frame, fg_color="white", corner_radius=5)
+        container.pack(fill="x", pady=(0, 20))
+
+        # Header
+        header_frame = ctk.CTkFrame(container, fg_color="transparent")
+        header_frame.pack(fill="x", padx=10, pady=(10, 5))
+        header_frame.grid_columnconfigure(1, weight=1)
+        header_frame.grid_columnconfigure(2, weight=0)
+
+        ctk.CTkLabel(header_frame, text="DOCUMENT REQUESTED", font=ctk.CTkFont(weight="bold")).grid(row=0, column=0, sticky="w", padx=5)
+        ctk.CTkLabel(header_frame, text="DATE REQUESTED", font=ctk.CTkFont(weight="bold")).grid(row=0, column=1, sticky="w", padx=5)
+        ctk.CTkLabel(header_frame, text="STATUS", font=ctk.CTkFont(weight="bold")).grid(row=0, column=2, sticky="e", padx=5)
+
+        # Status color mapping (matching admin panel)
+        status_colors = {
+            "Pending": "#F1C40F",  # Yellow
+            "Processing": "#3498DB",  # Blue
+            "Finished": "#2ECC71",  # Green
+            "Rejected": "#E74C3C"  # Red
+        }
+
+        # Rows
+        for request in user_requests:
+            row_frame = ctk.CTkFrame(container, fg_color="transparent")
+            row_frame.pack(fill="x", padx=10, pady=5)
+            row_frame.grid_columnconfigure(1, weight=1)
+            row_frame.grid_columnconfigure(2, weight=0)
+
+            ctk.CTkLabel(row_frame, text=request['document_name']).grid(row=0, column=0, sticky="w", padx=5)
+            # Format date (assuming created_at is datetime)
+            date_str = request['request_date'].strftime("%Y-%m-%d %H:%M") if request['request_date'] else "N/A"
+            ctk.CTkLabel(row_frame, text=date_str).grid(row=0, column=1, sticky="w", padx=5)
+
+            # Status label with color
+            status = request['status']
+            status_label = ctk.CTkLabel(row_frame, text=status, font=ctk.CTkFont(size=12, weight="bold"),
+                                        fg_color=status_colors.get(status, "#95A5A6"), text_color="white",
+                                        corner_radius=5, width=80, height=25)
+            status_label.grid(row=0, column=2, sticky="e", padx=5)
+
+
     content_label = ctk.CTkLabel(parent_frame,
-                                 text="This page will show all your requests (pending and complete).",
+                                 text="",
                                  font=ctk.CTkFont(size=20),
                                  text_color="gray")
     content_label.place(relx=0.5, rely=0.5, anchor="center")

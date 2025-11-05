@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <style>
+    * {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+body {
+  background-color: #f9f9f9;
+}
+
+.container {
+  width: 800px;
+  margin: 40px auto;
+  border: 1px solid #ccc;
+  background-color: #fff;
+}
+
+/* HEADER */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 40px;
+  border-bottom: 1px solid #ddd;
+}
+
+.header .seal img {
+  width: 90px;
+  height: 90px;
+  object-fit: contain;
+}
+
+.header-text {
+  text-align: center;
+  line-height: 1.4;
+}
+
+.header-text .republic,
+.header-text .province,
+.header-text .municipality {
+  font-size: 14px;
+}
+
+.header-text .barangay {
+  font-size: 22px;
+  color: #283593;
+  font-weight: bold;
+  margin: 5px 0;
+}
+
+.header-text .office {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* BLUE TITLE BAR */
+.rejected-bar {
+  background-color: #007bff;
+  text-align: center;
+  color: white;
+  padding: 10px 0;
+  font-weight: bold;
+}
+
+/* MAIN CONTENT */
+.content {
+  padding: 30px 50px;
+  text-align: left;
+}
+
+.info-text {
+  font-size: 15px;
+  margin-bottom: 20px;
+}
+
+.reason-box {
+  background-color: #f2f2f2;
+  border-left: 5px solid #e53935;
+  border-radius: 6px;
+  padding: 12px 15px;
+  width: 75%;
+  margin-bottom: 25px;
+}
+
+.reason-box p {
+  color: #333;
+  font-size: 15px;
+}
+
+.instruction {
+  font-size: 14px;
+  color: #333;
+}
+
+.building-img {
+  flex: 0 0 140px; /* fixed column width */
+  display: flex;
+  justify-content: right;
+  align-items: flex-start;
+  padding-top: 10px;
+}
+
+.building-img img {
+  width: 200px;
+  height: auto;
+  
+}
+
+/* FOOTER */
+footer {
+  border-top: 1px solid #ddd;
+  text-align: center;
+  padding: 10px;
+  font-size: 12px;
+  color: gray;
+}
+
+footer span {
+  color: #007bff;
+}
+
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- HEADER SECTION -->
+    <header class="header">
+      <div class="seal left">
+        <img src="D:\barangay\barangay logo.jpg" alt="Barangay Seal">
+      </div>
+
+      <div class="header-text">
+        <p class="republic">Republic of the Philippines</p>
+        <p class="province">Province of Bulacan</p>
+        <p class="municipality">Municipality of Marilao</p>
+        <h2 class="barangay">BARANGAY POBLACION II</h2>
+        <p class="office">OFFICE OF THE PUNONG BARANGAY</p>
+      </div>
+
+      <div class="seal right">
+        <img src="D:\barangay\Municipality logo.png" alt="Municipality Seal">
+      </div>
+    </header>
+
+    <!-- BLUE TITLE BAR -->
+    <div class="rejected-bar">
+      <h3>Account Registration Rejected</h3>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <main class="content">
+      <p class="info-text">
+        We regret to inform you that your account registration has been Rejected.
+      </p>
+
+      <div class="reason-box">
+        <p><strong>Reason:</strong> {{ reason }}</p>
+      </div>
+
+      <p class="instruction">
+        Please contact support for more information or to reapply.
+      </p>
+    </main>
+
+    <!-- Kap image --> 
+      <div class="building-img">
+        <img src="D:\barangay\pic ni kap.png" alt="Building Icon">
+      </div>
+    </main>
+
+    <!-- FOOTER -->
+    <footer>
+      <p>
+        If you believe this is an error, please reach out to
+        <span>barangaypoblacion2eservice@gmail.com</span>.
+      </p>
+    </footer>
+  </div>
+</body>
+</html>

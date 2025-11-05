@@ -64,19 +64,34 @@ def forgotpassword(register_email, new_password):
 def insert_document_request(user_id, document_name, valid_id_path=None, second_valid_id_path=None, dti_path=None, prof_of_payment_path=None, purpose_text=None):
     conn = get_connection()
     cur = conn.cursor()
-    try:
-        cur.execute("""
-            INSERT INTO document_requests (user_id, document_name, valid_id, second_valid_id, dti_path, prof_of_payment, purpose, status)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, 'Pending')
-        """, (user_id, document_name, valid_id_path, second_valid_id_path, dti_path, prof_of_payment_path, purpose_text))
-        conn.commit()
-        return True
-    except Exception as error:
-        print(f"Error inserting document request: {error}")
-        return False
-    finally:
-        cur.close()
-        conn.close()
+    if document_name == "Barangay Building Clearance" or document_name == "Barangay Business Clearance":
+        try:
+            cur.execute("""
+                INSERT INTO document_requests (user_id, document_name, valid_id, second_valid_id, dti_path, prof_of_payment, purpose, status)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, 'Pending')
+            """, (user_id, document_name, valid_id_path, second_valid_id_path, dti_path, prof_of_payment_path, purpose_text))
+            conn.commit()
+            return True
+        except Exception as error:
+            print(f"Error inserting document request: {error}")
+            return False
+        finally:
+            cur.close()
+            conn.close()
+    else:
+        try:
+            cur.execute("""
+                INSERT INTO document_requests (user_id, document_name, valid_id, second_valid_id, prof_of_payment, purpose, status)
+                VALUES (%s, %s, %s, %s, %s, %s, 'Pending')
+            """, (user_id, document_name, valid_id_path, second_valid_id_path, prof_of_payment_path, purpose_text))
+            conn.commit()
+            return True
+        except Exception as error:
+            print(f"Error inserting document request: {error}")
+            return False
+        finally:
+            cur.close()
+            conn.close()
 
 
 # -------------------- GET FULL USER DATA --------------------
@@ -127,8 +142,8 @@ def send_rejection_email(to_email, reason):
 
         server = smtplib.SMTP('smtp.gmail.com', 587)
         server.starttls()
-        from_email = "barangaypoblacion2eservice@gmail.com"
-        server.login(from_email, 'veorjdapcuglikhu')
+        from_email = "efrenlamoste5@gmail.com"
+        server.login(from_email, 'zqpq njoj xubi pjzp')
 
         msg = EmailMessage()
         msg['Subject'] = "Account Registration Rejected"
@@ -154,8 +169,8 @@ def send_approval_email(to_email):
 
         server = smtplib.SMTP('smtp.gmail.com', 587)
         server.starttls()
-        from_email = "barangaypoblacion2eservice@gmail.com"
-        server.login(from_email, 'veorjdapcuglikhu')
+        from_email = "efrenlamoste5@gmail.com"
+        server.login(from_email, 'zqpq njoj xubi pjzp')
 
         msg = EmailMessage()
         msg['Subject'] = "Account Registration Approved"
@@ -301,8 +316,8 @@ def send_finish_email(to_email):
 
         server = smtplib.SMTP('smtp.gmail.com', 587)
         server.starttls()
-        from_email = "barangaypoblacion2eservice@gmail.com"
-        server.login(from_email, 'veorjdapcuglikhu')  # Replace with actual password or use env var
+        from_email = "efrenlamoste5@gmail.com"
+        server.login(from_email, 'zqpq njoj xubi pjzp')
 
         msg = EmailMessage()
         msg['Subject'] = "Document Request Ready for Pickup"
@@ -492,3 +507,97 @@ def get_pending_verify_count():
     finally:
         cur.close()
         conn.close()
+
+# -------------------- GET USER DOCUMENT REQUESTS --------------------
+def get_user_document_requests(user_id):
+    conn = get_connection()
+    cur = conn.cursor()
+    try:
+        cur.execute("""
+            SELECT id, document_name, status, request_date
+            FROM document_requests
+            WHERE user_id = %s
+            ORDER BY request_date DESC
+        """, (user_id,))
+        rows = cur.fetchall()
+        return [{"id": row[0], "document_name": row[1], "status": row[2], "request_date": row[3]} for row in rows]
+    except Exception as error:
+        print(f"Error fetching user document requests: {error}")
+        return []
+    finally:
+        cur.close()
+        conn.close()
+
+# -------------------- STAFF LOGIN --------------------
+def stafflogin(staffuser, staffpassword):
+    conn = get_connection()
+    cur = conn.cursor()
+
+    # Check if user exists by username
+    cur.execute(""" SELECT password FROM staff WHERE username = %s """,
+                (staffuser,))
+    row = cur.fetchone()
+    cur.close()
+    conn.close()
+
+    if row and bcrypt.checkpw(staffpassword.encode('utf-8'), row[0].encode('utf-8')):
+        return True, "Login successful."
+    return False, "Invalid username/email or password."
+
+# -------------------- DELETE STAFF -----------------
+def delete_staff(staff_id):
+    conn = get_connection()
+    cur = conn.cursor()
+    try:
+        cur.execute("DELETE FROM staff WHERE id = %s", (staff_id,))
+        conn.commit()
+        return True
+    except Exception as error:
+        print(f"Error deleting staff: {error}")
+        return False
+    finally:
+        cur.close()
+        conn.close()
+
+
+# -------------------- DELETE RESIDENT --------------------
+def delete_resident(resident_id):
+    conn = get_connection()
+    cur = conn.cursor()
+    try:
+        cur.execute("DELETE FROM resident WHERE id = %s", (resident_id,))
+        conn.commit()
+        return True
+    except Exception as error:
+        print(f"Error deleting resident: {error}")
+        return False
+    finally:
+        cur.close()
+        conn.close()
+
+# -------------------- SEND DELETION EMAIL --------------------
+def send_deletion_email(to_email, reason):
+    try:
+        with open("deletion_email.html", "r", encoding="utf-8") as file:
+            html_content = file.read()
+        html_content = html_content.replace("{{ reason }}", reason)
+
+        server = smtplib.SMTP('smtp.gmail.com', 587)
+        server.starttls()
+        from_email = "efrenlamoste5@gmail.com"
+        server.login(from_email, 'zqpq njoj xubi pjzp')
+
+        msg = EmailMessage()
+        msg['Subject'] = "Account Deletion Notification"
+        msg['From'] = from_email
+        msg['To'] = to_email
+        msg.set_content(f"Your account has been deleted.\n\nReason: {reason}\n\nPlease contact support for more information.")
+        msg.add_alternative(html_content, subtype='html')
+
+        server.send_message(msg)
+        server.quit()
+        print(f"Deletion email sent to {to_email}")
+        return True
+    except Exception as error:
+        print(f"Error sending deletion email: {error}")
+        return False

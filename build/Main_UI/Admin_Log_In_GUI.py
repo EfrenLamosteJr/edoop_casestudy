@@ -4,7 +4,7 @@ from tkinter import ttk, messagebox
 from PIL import Image, ImageTk
 import requests
 from io import BytesIO
-
+from auth import stafflogin
 
 def go_to_resident_login(current_window):
     print("Switching back to Resident Login...")
@@ -124,21 +124,19 @@ def start_admin_login():
             eye_label.image = view_img
 
     eye_label.bind("<Button-1>", lambda e: toggle_password())
-
-    forgot_label = tk.Label(align_frame, text="Forgot Password?", bg="white", fg="#007BFF", font=("Arial", 9),
-                            cursor="hand2")
-    forgot_label.pack(anchor="e", pady=(0, 5))
-
+    #---- Ginaya ko lang login logic sa resident
     def admin_login_logic():
-        user = username_entry.get()
-        pwd = password_entry.get()
-        if user == "admin" and pwd == "password":  # Placeholder logic
+        staffuser = username_entry.get()
+        staffpassword = password_entry.get()
+
+        ok, msg = stafflogin(staffuser, staffpassword)
+        if ok:
             messagebox.showinfo("Login Success", "Welcome, Admin!")
             root.destroy()
             from Admin_Dashboard_GUI import start_admin_dashboard
             start_admin_dashboard()
         else:
-            messagebox.showerror("Login Failed", "Invalid admin credentials.")
+            messagebox.showerror("Login", msg)
 
     signin_btn = tk.Button(right_frame, text="Sign in", bg="#007BFF", fg="white", font=("Arial", 12, "bold"),
                            relief="flat", width=25, height=2, activebackground="#0056d6", cursor="hand2",

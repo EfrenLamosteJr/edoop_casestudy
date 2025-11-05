@@ -10,7 +10,6 @@ from io import BytesIO
 
 # ----------------- NEW FUNCTION STARTS HERE -----------------
 def go_back_to_login(current_window):
-    """Closes the reset password window and opens the login window."""
     current_window.destroy()
     from Log_In_GUI import start_login1
     start_login1()
@@ -117,7 +116,7 @@ def start_resetpass():
         entry_column, text="", text_color="#C0392B", font=("Nirmala UI", 11, "bold")
     )
     error_label.pack(pady=(5, 5))
-
+    #----------- VALIDATION
     def confirm_reset():
         error_label.configure(text="")
         email = email_entry.get()
@@ -187,7 +186,7 @@ def start_resetpass():
 
     root.mainloop()
 
-
+#------------ Path papunta OTP form
 def do_forgotpass(email, new_password, window):
     if email.endswith("@gmail.com"):
         window.destroy()

@@ -35,7 +35,7 @@ def load_image_from_url(url, size):
     try:
         response = requests.get(url)
         response.raise_for_status() # Raise an error for bad responses
-        
+
         image_data = response.content
         pil_image = Image.open(io.BytesIO(image_data))
         
@@ -58,6 +58,7 @@ if barangay_logo_ctk_image:
 else:
     print("FAILED to load barangay logo. Check URL or internet connection.")
 
+#----- dito kukunin yung total resident account
 def get_total_residents_count():
     conn = get_connection()
     cur = conn.cursor()
@@ -71,7 +72,7 @@ def get_total_residents_count():
     finally:
         cur.close()
         conn.close()
-
+#--- pending request ng docu informations
 def get_pending_requests():
     conn = get_connection()
     cur = conn.cursor()
@@ -87,7 +88,7 @@ def get_pending_requests():
     finally:
         cur.close()
         conn.close()
-
+#---- Select lang yung existing staff if meron na
 def get_existing_staff():
     conn = get_connection()
     cur = conn.cursor()
@@ -103,6 +104,7 @@ def get_existing_staff():
         cur.close()
         conn.close()
 
+#----- dito kukunin yung information para mapalabas sa bar
 def get_pending_residents():
     conn = get_connection()
     cur = conn.cursor()
@@ -116,7 +118,7 @@ def get_pending_residents():
     finally:
         cur.close()
         conn.close()
-
+#----- bilang ng pending pa yung request
 def get_pending_requests_count():
     conn = get_connection()
     cur = conn.cursor()
@@ -130,7 +132,7 @@ def get_pending_requests_count():
     finally:
         cur.close()
         conn.close()
-
+#-- count ng di pa verified na account
 def get_pending_verify_count():
     conn = get_connection()
     cur = conn.cursor()
@@ -297,7 +299,7 @@ def show_request_management_content(parent_frame):
 
                 info_to_display = {
                     "Name:": f"{details['firstname']} {details['lastname']}",
-                    "Age:": str(details['age']) if details['age'] else 'N/A',  # Convert int to string
+                    "Age:": str(details['age']) if details['age'] else 'N/A',
                     "Gender:": details['gender'] or 'N/A',
                     "Address:": details['address'] or 'N/A',
                     "Valid ID:": display_file_or_text(details['valid_id']),
@@ -447,7 +449,7 @@ def show_resident_accounts_content(parent_frame):
             widget.destroy()
         show_resident_accounts_content(parent_frame)
 
-    #------------DATABASE HELPER FUNCTIONS (MOVED HERE)----------------
+    #------------DATABASE FUNCTION DITO KO MUNA NILAGAY HIHILO NA AKO E----------------
     def get_pending_verification_residents():
         conn = get_connection()
         cur = conn.cursor()
@@ -477,7 +479,6 @@ def show_resident_accounts_content(parent_frame):
             conn.close()
         
     def view_action(res_id, parent_frame):
-        # --- Make sure globals are declared at the top ---
         global barangay_logo_icon, barangay_logo_ctk_image 
 
         user_data = get_full_user_data_by_id(res_id)

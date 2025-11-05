@@ -1,86 +1,148 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <style>
-       body {
-    margin-top: 20px;
-  font-family: Arial, Helvetica, sans-serif;
-  background-color: #f6f6f6;
-  height: 100vh;
-}
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>One-Time Password Verification</title>
+    <!-- Critical CSS is now inlined, but we keep this style block for clients that read it (and for background/font fallback) -->
+    <style>
+        /* General Reset for better email client compatibility */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', Arial, Helvetica, sans-serif; }
+        img { border: 0; line-height: 100%; outline: none; text-decoration: none; display: block; }
+        a { text-decoration: none; }
+        .container { max-width: 800px; width: 100%; border-radius: 12px; overflow: hidden; }
 
-.container {
-  background-color: #ffffff;
-  border: 1px solid #ddd;
-  border-radius: 10px;
-  width: 400px;
-  text-align: center;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-}
-
-.header {
-  background-color: #007bff;
-  color: white;
-  padding: 15px 0;
-  border-top-left-radius: 10px;
-  border-top-right-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-}
-
-.logo {
-  width: 45px;
-  height: 45px;
-}
-
-.otp-content {
-  padding: 30px 20px;
-}
-
-.otp-content p {
-  margin: 10px 0;
-  color: #333;
-}
-
-.otp-box {
-  background-color: #f0f0f0;
-  display: inline-block;
-  padding: 10px 25px;
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: #222;
-  border-radius: 10px;
-  margin: 10px 0 20px 0;
-}
-
-.expire-text {
-  color: #555;
-}
-
-.footer-text {
-  font-size: 0.8rem;
-  color: #aaa;
-  padding-bottom: 20px;
-}
-</style>
+        /* Fallback for clients that use style blocks */
+        .header-text h2 { font-size: 24px !important; }
+        .approved-bar h3 { font-size: 16px !important; }
+    </style>
 </head>
-<body>
-  <div class="container">
-    <div class="header">
-      <img src="logo.png" alt="Barangay Logo" class="logo">
-      <h2>OTP Verification</h2>
-    </div>
+<body style="margin: 0; padding: 0; background-color: #f1f5f9;">
 
-    <div class="otp-content">
-      <p>Your OTP code is:</p>
-      <div class="otp-box">{{ otp }}</div>
-      <p class="expire-text">It will expire in <strong>**5 minutes**</strong>.</p>
-    </div>
+<!-- 1. MAIN WRAPPER TABLE (100% width for center alignment) -->
+<table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" style="background-color: #f1f5f9; padding: 20px 0;">
+    <tr>
+        <td align="center">
 
-    <p class="footer-text">If you did not request this, you can ignore this email.</p>
-  </div>
+            <!-- 2. CONTAINER TABLE (Max width for content) -->
+            <table class="container" width="600" border="0" cellpadding="0" cellspacing="0" role="presentation" style="max-width: 600px; width: 100%; border: 1px solid #e2e8f0; background-color: #fff; border-radius: 12px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); margin: 20px auto;">
+
+                <!-- HEADER SECTION -->
+                <tr>
+                    <td style="padding: 20px 40px; border-bottom: 1px solid #e2e8f0;">
+
+                        <!-- 3. HEADER LAYOUT TABLE (Three-column layout for seals and text) -->
+                        <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation">
+                            <tr>
+                                <!-- Left Seal -->
+                                <td width="70" valign="middle" style="padding-right: 10px;">
+                                    <img
+                                      src="https://raw.githubusercontent.com/EfrenLamosteJr/edoop_casestudy/e8365a475424d9b362be2b2d16c522b7248062ad/build/Image_Resources/barangay%20logo.png"
+                                      alt="Barangay Seal"
+                                      onerror="this.onerror=null; this.src='https://placehold.co/70x70/283593/FFF?text=Seal';"
+                                      width="70" height="70" style="display: block; border-radius: 50%;"
+                                    >
+                                </td>
+
+                                <!-- Center Text -->
+                                <td align="center" valign="top" class="header-text" style="line-height: 1.3;">
+                                    <p class="republic" style="font-size: 13px; color: #475569; margin: 0;">Republic of the Philippines</p>
+                                    <p class="province" style="font-size: 13px; color: #475569; margin: 0;">Province of Bulacan</p>
+                                    <p class="municipality" style="font-size: 13px; color: #475569; margin: 0;">Municipality of Marilao</p>
+                                    <h2 class="barangay" style="font-size: 24px; color: #283593; font-weight: 800; margin: 5px 0 5px 0;">BARANGAY POBLACION II</h2>
+                                    <p class="office" style="font-size: 13px; font-weight: 600; color: #475569; margin: 0;">OFFICE OF THE PUNONG BARANGAY</p>
+                                </td>
+
+                                <!-- Right Seal -->
+                                <td width="70" valign="middle" style="padding-left: 10px;">
+                                    <img
+                                      src="https://raw.githubusercontent.com/EfrenLamosteJr/edoop_casestudy/e8365a475424d9b362be2b2d16c522b7248062ad/build/Image_Resources/Municipality%20logo.png"
+                                      alt="Municipality Seal"
+                                      onerror="this.onerror=null; this.src='https://placehold.co/70x70/283593/FFF?text=Seal';"
+                                      width="70" height="70" style="display: block; border-radius: 50%;"
+                                    >
+                                </td>
+                            </tr>
+                        </table>
+                        <!-- END HEADER LAYOUT TABLE -->
+
+                    </td>
+                </tr>
+
+                <!-- BLUE TITLE BAR (Updated for OTP Status) -->
+                <tr>
+                    <td class="approved-bar" align="center" style="background-color: #3b82f6; color: white; padding: 12px 0; font-weight: bold; letter-spacing: 1px;">
+                        <h3 style="font-size: 16px; margin: 0;">ONE-TIME PASSWORD (OTP)</h3>
+                    </td>
+                </tr>
+
+                <!-- MAIN CONTENT (OTP Verification) -->
+                <tr>
+                    <td class="content" style="padding: 30px 50px;" align="center">
+                        <h4 style="font-size: 20px; color: #0f172a; margin-bottom: 25px; font-weight: 700;">Verify Your Identity</h4>
+
+                        <!-- Main Body Text and OTP Box -->
+                        <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" align="center" style="text-align: center;">
+                            <tr>
+                                <td style="padding-bottom: 20px;">
+                                    <p style="font-size: 16px; color: #334155; line-height: 1.6; margin: 0;">
+                                        Your secure verification code is below. Enter this code to proceed:
+                                    </p>
+                                </td>
+                            </tr>
+                            <!-- OTP BOX -->
+                            <tr>
+                                <!-- Adjusted padding to account for the removed expiry text row -->
+                                <td align="center" style="padding: 15px 0 30px 0;">
+                                    <div class="otp-box" style="display: inline-block; background-color: #f0f4f8; border: 2px solid #283593; padding: 15px 30px; border-radius: 8px;">
+                                        <span style="font-family: monospace, Courier, sans-serif; font-size: 30px; color: #283593; font-weight: 800; letter-spacing: 5px;">
+                                            {{ otp }}
+                                        </span>
+                                    </div>
+                                </td>
+                            </tr>
+                            <!-- Expiry Text REMOVED -->
+
+                            <!-- Ignore Text (User specified footer text) -->
+                            <tr>
+                                <td style="padding-bottom: 10px;">
+                                    <p class="footer-text" style="font-size: 14px; color: #64748b; margin: 0;">
+                                        If you did not request this, you can ignore this email.
+                                    </p>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+
+                <!-- CAPTAIN IMAGE SECTION (Restored) -->
+                <tr>
+                    <td class="building-img" align="right" style="padding: 0 40px 20px 40px;">
+                        <!-- Image of the Barangay Captain -->
+                        <img
+                          src="https://raw.githubusercontent.com/EfrenLamosteJr/edoop_casestudy/ff0f21243fb4ee2ae8ba35fc9f8ac67292dc455f/build/Image_Resources/captain.jpg"
+                          alt="Barangay Captain"
+                          onerror="this.onerror=null; this.src='https://placehold.co/200x150/283593/FFF?text=Captain';"
+                          width="200"
+                          style="max-width: 200px; width: 100%; height: auto; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);"
+                        >
+                    </td>
+                </tr>
+
+                <!-- FOOTER -->
+                <tr>
+                    <td align="center" style="border-top: 1px solid #e2e8f0; background-color: #f8fafc; padding: 15px; font-size: 12px; color: #64748b; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px;">
+                        <p style="margin: 0;">If you have any questions, please contact <a href="mailto:barangaypoblacion2eservice@gmail.com" style="color: #283593; text-decoration: underline;">barangaypoblacion2eservice@gmail.com</a>.</p>
+                    </td>
+                </tr>
+
+            </table>
+            <!-- END CONTAINER TABLE -->
+
+        </td>
+    </tr>
+</table>
+<!-- END MAIN WRAPPER TABLE -->
+
 </body>
 </html>

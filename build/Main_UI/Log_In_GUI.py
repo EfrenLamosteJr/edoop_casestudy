@@ -97,7 +97,7 @@ def start_login1():
     view_url = "https://raw.githubusercontent.com/EfrenLamosteJr/edoop_casestudy/5ef8907a670294733dfb769d07195e84db937dd9/build/Image_Resources/view.png"
     hide_url = "https://raw.githubusercontent.com/EfrenLamosteJr/edoop_casestudy/5ef8907a670294733dfb769d07195e84db937dd9/build/Image_Resources/hide.png"
 
-    # --- Eye icon toggle ---
+    # --- Eye icon ---
     view_img = load_image_from_url(view_url, size=(20, 20))
     hide_img = load_image_from_url(hide_url, size=(20, 20))
     eye_label = tk.Label(align_frame, image=view_img, bg="white", cursor="hand2")
@@ -134,7 +134,7 @@ def start_login1():
     forgotpass_label.bind("<Leave>", forgot_on_leave)
     forgotpass_label.bind("<Button-1>", forgot_on_click)
 
-    # --- Sign in button ---
+    # --- Sign in button --- -------- button to execute do_login
     signin_btn = tk.Button(right_frame, text="Sign in", bg="#007BFF", fg="white", font=("Arial", 10, "bold"),
                            relief="flat", width=30, height=2, activebackground="#0056d6", cursor="hand2",
                            command=lambda: do_login(l_username.get(), l_password.get(), root))
@@ -164,7 +164,7 @@ def start_login1():
 
     root.mainloop()
 
-
+#-------- Papunta sa auth ------ may validation ulit di ko na inalis gumagana naman e
 def do_login(log_user, log_pass, window):
     if log_user.strip() and log_pass.strip():
         if len(log_user) >= 5 and len(log_pass) >= 5:
@@ -172,7 +172,7 @@ def do_login(log_user, log_pass, window):
             if ok:
                 messagebox.showinfo("Login", msg)
                 window.destroy()
-                from Main_page_GUI import start_mainhomepage, get_current_user_data
+                from Main_page_GUI import start_mainhomepage
                 start_mainhomepage(log_user)
             else:
                 messagebox.showerror("Login", msg)

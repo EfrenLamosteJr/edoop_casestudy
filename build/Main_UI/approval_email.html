@@ -1,50 +1,128 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="utf-8">
-  <style>
-    .container {
-      border: 1px solid #ddd;
-      padding: 20px;
-      font-family: Arial, sans-serif;
-    }
-    .header {
-      background-color: #2ECC71;  /* Green theme for approval */
-      color: white;
-      padding: 10px;
-      text-align: center;
-      font-size: 1.5em;
-    }
-    .body {
-      margin-top: 20px;
-      font-size: 1.1em;
-    }
-    .message {
-      font-size: 1.2em;
-      color: #333;
-      margin: 10px 0;
-      background-color: #f9f9f9;
-      padding: 10px;
-      border-left: 4px solid #2ECC71;  /* Green accent */
-    }
-    .footer {
-      margin-top: 30px;
-      font-size: 0.9em;
-      color: #888;
-    }
-  </style>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account Registration Approved</title>
+    <!-- Critical CSS is now inlined, but we keep this style block for clients that read it (and for background/font fallback) -->
+    <style>
+        /* General Reset for better email client compatibility */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', Arial, Helvetica, sans-serif; }
+        img { border: 0; line-height: 100%; outline: none; text-decoration: none; display: block; }
+        a { text-decoration: none; }
+        .container { max-width: 800px; width: 100%; border-radius: 12px; overflow: hidden; }
+
+        /* Fallback for clients that use style blocks */
+        .header-text h2 { font-size: 24px !important; }
+        .approved-bar h3 { font-size: 16px !important; }
+    </style>
 </head>
-<body>
-  <div class="container">
-    <div class="header">Account Registration Approved</div>
-    <div class="body">
-      Congratulations! Your account registration has been approved.
-      <div class="message">You can now log in to your account and access all resident services.</div>
-      Welcome to the P2SERVE community!
-    </div>
-    <div class="footer">
-      If you have any questions, please contact barangaypoblacion2eservice@gmail.com.
-    </div>
-  </div>
+<body style="margin: 0; padding: 0; background-color: #f1f5f9;">
+
+<!-- 1. MAIN WRAPPER TABLE (100% width for center alignment) -->
+<table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" style="background-color: #f1f5f9; padding: 20px 0;">
+    <tr>
+        <td align="center">
+
+            <!-- 2. CONTAINER TABLE (Max width for content) -->
+            <table class="container" width="600" border="0" cellpadding="0" cellspacing="0" role="presentation" style="max-width: 600px; width: 100%; border: 1px solid #e2e8f0; background-color: #fff; border-radius: 12px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); margin: 20px auto;">
+
+                <!-- HEADER SECTION -->
+                <tr>
+                    <td style="padding: 20px 40px; border-bottom: 1px solid #e2e8f0;">
+
+                        <!-- 3. HEADER LAYOUT TABLE (Three-column layout for seals and text) -->
+                        <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation">
+                            <tr>
+                                <!-- Left Seal -->
+                                <td width="70" valign="middle" style="padding-right: 10px;">
+                                    <img
+                                      src="https://raw.githubusercontent.com/EfrenLamosteJr/edoop_casestudy/e8365a475424d9b362be2b2d16c522b7248062ad/build/Image_Resources/barangay%20logo.png"
+                                      alt="Barangay Seal"
+                                      onerror="this.onerror=null; this.src='https://placehold.co/70x70/283593/FFF?text=Seal';"
+                                      width="70" height="70" style="display: block; border-radius: 50%;"
+                                    >
+                                </td>
+
+                                <!-- Center Text -->
+                                <td align="center" valign="top" class="header-text" style="line-height: 1.3;">
+                                    <p class="republic" style="font-size: 13px; color: #475569; margin: 0;">Republic of the Philippines</p>
+                                    <p class="province" style="font-size: 13px; color: #475569; margin: 0;">Province of Bulacan</p>
+                                    <p class="municipality" style="font-size: 13px; color: #475569; margin: 0;">Municipality of Marilao</p>
+                                    <h2 class="barangay" style="font-size: 24px; color: #283593; font-weight: 800; margin: 5px 0 5px 0;">BARANGAY POBLACION II</h2>
+                                    <p class="office" style="font-size: 13px; font-weight: 600; color: #475569; margin: 0;">OFFICE OF THE PUNONG BARANGAY</p>
+                                </td>
+
+                                <!-- Right Seal -->
+                                <td width="70" valign="middle" style="padding-left: 10px;">
+                                    <img
+                                      src="https://raw.githubusercontent.com/EfrenLamosteJr/edoop_casestudy/e8365a475424d9b362be2b2d16c522b7248062ad/build/Image_Resources/Municipality%20logo.png"
+                                      alt="Municipality Seal"
+                                      onerror="this.onerror=null; this.src='https://placehold.co/70x70/283593/FFF?text=Seal';"
+                                      width="70" height="70" style="display: block; border-radius: 50%;"
+                                    >
+                                </td>
+                            </tr>
+                        </table>
+                        <!-- END HEADER LAYOUT TABLE -->
+
+                    </td>
+                </tr>
+
+                <!-- GREEN TITLE BAR -->
+                <tr>
+                    <td class="approved-bar" align="center" style="background-color: #10b981; color: white; padding: 12px 0; font-weight: bold; letter-spacing: 1px;">
+                        <h3 style="font-size: 16px; margin: 0;">ACCOUNT REGISTRATION APPROVED</h3>
+                    </td>
+                </tr>
+
+                <!-- MAIN CONTENT -->
+                <tr>
+                    <td class="content" style="padding: 30px 50px;">
+                        <h4 style="font-size: 18px; color: #0f172a; margin-bottom: 20px; font-weight: 600;">Congratulations! Your account registration has been approved.</h4>
+
+                        <!-- NOTICE BOX (needs its own sub-table for reliable background/border) -->
+                        <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation">
+                            <tr>
+                                <td class="notice-box" style="background-color: #ecfdf5; border-left: 5px solid #10b981; padding: 15px 20px; max-width: 450px; border-radius: 6px; margin-bottom: 25px;">
+                                    <p style="color: #065f46; font-size: 15px; line-height: 1.5; margin: 0;">You can now log in to your account and access all resident services.</p>
+                                </td>
+                            </tr>
+                        </table>
+                        <!-- END NOTICE BOX -->
+
+                        <p class="welcome" style="font-size: 16px; color: #334155; margin-bottom: 30px; font-weight: 500;">Welcome to the P2SERVE community!</p>
+                    </td>
+                </tr>
+
+                <!-- Captain image -->
+                <tr>
+                    <td class="building-img" align="right" style="padding: 0 40px 20px 40px;">
+                        <!-- Alignment is handled by the td align="right" -->
+                        <img
+                          src="https://raw.githubusercontent.com/EfrenLamosteJr/edoop_casestudy/ff0f21243fb4ee2ae8ba35fc9f8ac67292dc455f/build/Image_Resources/captain.jpg"
+                          alt="Barangay Captain"
+                          onerror="this.onerror=null; this.src='https://placehold.co/200x150/283593/FFF?text=Captain';"
+                          width="200"
+                          style="max-width: 200px; width: 100%; height: auto; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);"
+                        >
+                    </td>
+                </tr>
+
+                <!-- FOOTER -->
+                <tr>
+                    <td align="center" style="border-top: 1px solid #e2e8f0; background-color: #f8fafc; padding: 15px; font-size: 12px; color: #64748b; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px;">
+                        <p style="margin: 0;">If you have any questions, please contact <a href="mailto:barangaypoblacion2eservice@gmail.com" style="color: #283593; text-decoration: underline;">barangaypoblacion2eservice@gmail.com</a>.</p>
+                    </td>
+                </tr>
+
+            </table>
+            <!-- END CONTAINER TABLE -->
+
+        </td>
+    </tr>
+</table>
+<!-- END MAIN WRAPPER TABLE -->
+
 </body>
 </html>

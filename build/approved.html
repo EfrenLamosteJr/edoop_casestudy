@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+ <style>
+    * {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+body {
+  background-color: #f9f9f9;
+}
+
+.container {
+  width: 800px;
+  margin: 40px auto;
+  border: 1px solid #ccc;
+  background-color: #fff;
+}
+
+/* HEADER SECTION */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 40px;
+  border-bottom: 1px solid #ddd;
+}
+
+.header .seal img {
+  width: 90px;
+  height: 90px;
+  object-fit: contain;
+}
+
+.header-text {
+  text-align: center;
+  line-height: 1.4;
+}
+
+.header-text .republic,
+.header-text .province,
+.header-text .municipality {
+  font-size: 14px;
+}
+
+.header-text .barangay {
+  font-size: 22px;
+  color: #283593;
+  font-weight: bold;
+  margin: 5px 0;
+}
+
+.header-text .office {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* GREEN BAR */
+.approved-bar {
+  background-color: #2ecc71;
+  text-align: center;
+  color: white;
+  padding: 10px 0;
+  font-weight: bold;
+}
+
+/* MAIN CONTENT */
+.content {
+  padding: 30px 50px;
+  position: relative;
+}
+
+.content h4 {
+  font-size: 16px;
+  margin-bottom: 20px;
+}
+
+.notice-box {
+  background-color: #f2f2f2;
+  border-left: 4px solid #4CAF50;
+  padding: 10px 15px;
+  width: 70%;
+  margin-bottom: 20px;
+}
+
+.welcome {
+  font-size: 15px;
+  margin-bottom: 40px;
+}
+
+.building-img {
+  flex: 0 0 140px; /* fixed column width */
+  display: flex;
+  justify-content: right;
+  align-items: flex-start;
+  padding-top: 10px;
+}
+
+.building-img img {
+  width: 200px;
+  height: auto;
+}
+
+/* FOOTER */
+footer {
+  border-top: 1px solid #ddd;
+  text-align: center;
+  padding: 10px;
+  font-size: 12px;
+  color: gray;
+}
+ </style>
+</head>
+<body>
+  <div class="container">
+    <!-- HEADER SECTION -->
+    <header class="header">
+      <div class="seal left">
+        <img src="https://github.com/EfrenLamosteJr/edoop_casestudy/blob/e8365a475424d9b362be2b2d16c522b7248062ad/build/Image_Resources/barangay%20logo.png" alt="Barangay Seal">
+      </div>
+
+      <div class="header-text">
+        <p class="republic">Republic of the Philippines</p>
+        <p class="province">Province of Bulacan</p>
+        <p class="municipality">Municipality of Marilao</p>
+        <h2 class="barangay">BARANGAY POBLACION II</h2>
+        <p class="office">OFFICE OF THE PUNONG BARANGAY</p>
+      </div>
+
+      <div class="seal right">
+        <img src="https://github.com/EfrenLamosteJr/edoop_casestudy/blob/e8365a475424d9b362be2b2d16c522b7248062ad/build/Image_Resources/Municipality%20logo.png" alt="Municipality Seal">
+      </div>
+    </header>
+
+    <!-- GREEN TITLE BAR -->
+    <div class="approved-bar">
+      <h3>Account Registration Approved</h3>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <main class="content">
+      <h4>Congratulations! Your account registration has been approved.</h4>
+      <div class="notice-box">
+        <p>You can now log in to your account and access all resident services.</p>
+      </div>
+      <p class="welcome">Welcome to the P2SERVE community!</p>
+    </main>
+
+<!-- Kap image --> 
+      <div class="building-img">
+        <img src="https://github.com/EfrenLamosteJr/edoop_casestudy/blob/ff0f21243fb4ee2ae8ba35fc9f8ac67292dc455f/build/Image_Resources/captain.jpg" alt="Building Icon">
+      </div>
+
+    <!-- FOOTER -->
+    <footer>
+      <p>If you have any questions, please contact barangaypoblacion2eservice@gmail.com.</p>
+    </footer>
+  </div>
+</body>
+</html>

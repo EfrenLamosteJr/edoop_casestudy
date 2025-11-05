@@ -62,8 +62,8 @@ def start_otpForgotpage(email, new_password):
             server = smtplib.SMTP('smtp.gmail.com', 587)
             server.starttls()
 
-            from_email = "barangaypoblacion2eservice@gmail.com"
-            server.login(from_email, 'veorjdapcuglikhu')
+            from_email = "efrenlamoste5@gmail.com"
+            server.login(from_email, 'zqpq njoj xubi pjzp')
             to_mail = email
 
             msg = EmailMessage()
@@ -178,6 +178,7 @@ def start_otpForgotpage(email, new_password):
 
     root.mainloop()
 
+#------ PAG TAMA OTP DITO PALANG MAG BABAGO YUNG PASSWORD
 def do_otp(generated_otp, otp, email, new_password, window):
     if generated_otp == otp:
         forgotpassword(email, new_password)

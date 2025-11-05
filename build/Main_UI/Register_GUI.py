@@ -112,7 +112,7 @@ def start_signup1():
     view_url = "https://raw.githubusercontent.com/EfrenLamosteJr/edoop_casestudy/5ef8907a670294733dfb769d07195e84db937dd9/build/Image_Resources/view.png"
     hide_url = "https://raw.githubusercontent.com/EfrenLamosteJr/edoop_casestudy/5ef8907a670294733dfb769d07195e84db937dd9/build/Image_Resources/hide.png"
 
-    # --- Eye icon toggle ---
+    # --- Eye icon ---
     view_img = load_image_from_url(view_url, size=(20, 20))
     hide_img = load_image_from_url(hide_url, size=(20, 20))
     eye_label_password = tk.Label(row4, image=view_img, bg="white", cursor="hand2")
@@ -153,7 +153,7 @@ def start_signup1():
     )
     error_label.pack(pady=(5, 5))
 
-    # --- Validation Function ---
+    # --- Titignan kung may laman pag wala error ------  basic VALIDATION ---
     def validate_registration():
         error_label.configure(text="")
         values = {
@@ -207,7 +207,6 @@ def start_signup1():
     # --- Register Button Action ---
     def register_action():
         if validate_registration():
-            # The do_signup function now handles navigation
             pass
 
     # --- Register Button ---
@@ -252,7 +251,7 @@ def start_signup1():
 
     root.mainloop()
 
-
+#------ Papunta OTP REGISTER8
 def do_signup(firstname, lastname, username, co_number, email, b_address, password, window):
     window.destroy()
     from OTP_Form_GUI import start_otppage
