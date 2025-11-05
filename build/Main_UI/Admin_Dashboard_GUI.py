@@ -48,7 +48,7 @@ def load_image_from_url(url, size):
         print(f"Error processing image: {e}")
         return None
 
-# --- ADD THIS CODE TO LOAD THE LOGO GLOBALLY ---
+
 LOGO_URL = "https://raw.githubusercontent.com/EfrenLamosteJr/edoop_casestudy/5ef8907a670294733dfb769d07195e84db937dd9/build/Image_Resources/P2SERVE_LOGO.png"
 print("Loading barangay logo from URL...")
 barangay_logo_ctk_image = load_image_from_url(LOGO_URL, size=(40, 40))
@@ -198,18 +198,20 @@ def show_request_management_content(parent_frame):
             process_btn = ctk.CTkButton(action_buttons_frame, text="Process", width=60, height=25, fg_color=APPROVE_COLOR, font=ctk.CTkFont(size=10))
             process_btn.pack(side="left", padx=2)
 
+
             def view_action(req_id):
                 details = get_request_details_with_resident(req_id)
                 if not details:
                     ctk.CTkLabel(parent_frame, text="Error loading request details.", text_color="red").pack(pady=20)
                     return
+                
                 popup = ctk.CTkToplevel(parent_frame)
                 popup.title("View Document Request")
                 popup.geometry("800x550")
                 popup.transient(parent_frame)
                 popup.grab_set()
                 popup.configure(fg_color="#ffffff")
-                popup.config(bg="#ffffff")  # Force white background
+                popup.config(bg="#ffffff")
 
                 header_frame = ctk.CTkFrame(popup, fg_color=VIEW_COLOR, height=60, corner_radius=0)
                 header_frame.pack(side="top", fill="x")
@@ -218,23 +220,34 @@ def show_request_management_content(parent_frame):
                     logo_label = ctk.CTkLabel(header_frame, text="", image=barangay_logo_ctk_image)
                     logo_label.grid(row=0, column=0, padx=15, pady=10, sticky="w")
                 title_label = ctk.CTkLabel(header_frame, text=f"Document Request: {details['document_name']}",
-                                           font=ctk.CTkFont(size=18, weight="bold"), text_color="white", anchor="w")
+                                            font=ctk.CTkFont(size=18, weight="bold"), text_color="white", anchor="w")
                 title_label.grid(row=0, column=1, padx=(10, 20), pady=10, sticky="ew")
 
-                main_content_frame = ctk.CTkFrame(popup, fg_color="transparent")
-                main_content_frame.pack(fill="both", expand=True, padx=20, pady=(0, 20))
-                main_content_frame.grid_columnconfigure(0, weight=1)
-                main_content_frame.grid_columnconfigure(1, weight=2)
-                main_content_frame.grid_rowconfigure(0, weight=1)
-                main_content_frame.grid_rowconfigure(1, weight=0)
+                # --- BUTTON FRAME ---
+                button_frame = ctk.CTkFrame(popup, fg_color="transparent")
+                button_frame.pack(side="bottom", fill="x", pady=(0, 10), padx=20) 
+                button_frame.grid_columnconfigure((0, 1, 2), weight=1)
 
-                image_frame = ctk.CTkFrame(main_content_frame, fg_color="transparent")
-                image_frame.grid(row=0, column=0, padx=(0, 10), pady=(20, 10), sticky="nsew")
+                # --- SCROLLABLE CONTENT ---
+                main_scroll_frame = ctk.CTkScrollableFrame(popup, fg_color="transparent")
+                main_scroll_frame.pack(fill="both", expand=True, padx=20, pady=(0, 0))
+                
+                content_wrapper_frame = ctk.CTkFrame(main_scroll_frame, fg_color="transparent")
+                content_wrapper_frame.pack(fill="x", expand=True) 
+
+                content_wrapper_frame.grid_columnconfigure(0, weight=1)
+                content_wrapper_frame.grid_columnconfigure(1, weight=2)
+                
+                # --- Image Frame (Left Column) ---
+                image_frame = ctk.CTkFrame(content_wrapper_frame, fg_color="transparent")
+                image_frame.grid(row=0, column=0, padx=(0, 10), pady=(20, 10), sticky="n") 
+                
                 image_display_size = 250
                 image_label = ctk.CTkLabel(image_frame, text="No Image Provided", width=image_display_size,
-                                           height=image_display_size, fg_color="transparent", corner_radius=10)
+                                        height=image_display_size, fg_color="transparent", corner_radius=10)
                 image_label.pack(expand=True)
-                if details['profile_picture']:
+                
+                if details.get('profile_picture'):
                     try:
                         pil_image = Image.open(details['profile_picture'])
                         ctk_image = ctk.CTkImage(pil_image, size=(image_display_size, image_display_size))
@@ -243,40 +256,43 @@ def show_request_management_content(parent_frame):
                     except Exception as e:
                         image_label.configure(text=f"Error loading image.")
 
-                info_frame = ctk.CTkFrame(main_content_frame, fg_color="transparent")
-                info_frame.grid(row=0, column=1, padx=(10, 0), pady=(20, 10), sticky="nsew")
+                
+                profile_placeholder_label = ctk.CTkLabel(image_frame, text="User's Profile", 
+                                                        font=ctk.CTkFont(size=14, weight="bold"),
+                                                        text_color="gray", pady=5)
+                profile_placeholder_label.pack(pady=(5, 0)) 
+
+               
+                info_frame = ctk.CTkFrame(content_wrapper_frame, fg_color="transparent")
+                info_frame.grid(row=0, column=1, padx=(10, 0), pady=(20, 10), sticky="new")
+                info_frame.grid_columnconfigure(1, weight=1)
+
                 label_font = ctk.CTkFont(size=16, weight="bold")
                 data_font = ctk.CTkFont(size=16)
 
-                # Helper to display image or text
-                # Helper to open enlarged image popup
                 def open_image_popup(image_path):
                     if not image_path or not os.path.exists(image_path):
                         return
                     try:
                         pil_image = Image.open(image_path)
-                        # Get original size or resize if too large (e.g., max 600x800)
                         max_width, max_height = 600, 800
                         pil_image.thumbnail((max_width, max_height), Image.Resampling.LANCZOS)
 
                         popup = ctk.CTkToplevel(parent_frame)
                         popup.title("Enlarged Image")
-                        popup.geometry(f"{pil_image.width}x{pil_image.height + 50}")  # Add space for button
+                        popup.geometry(f"{pil_image.width}x{pil_image.height + 50}")
                         popup.transient(parent_frame)
                         popup.grab_set()
                         popup.configure(fg_color="#ffffff")
 
-                        # Display the image
                         ctk_image = ctk.CTkImage(pil_image, size=(pil_image.width, pil_image.height))
                         image_label = ctk.CTkLabel(popup, image=ctk_image, text="")
                         image_label.pack(pady=10)
 
-                        # Close button
                         ctk.CTkButton(popup, text="Close", command=popup.destroy, fg_color=VIEW_COLOR).pack(pady=10)
                     except Exception as e:
                         print(f"Error opening image popup: {e}")
 
-                # Helper to display image or text
                 def display_file_or_text(file_path):
                     if file_path and os.path.exists(file_path) and file_path.lower().endswith(
                             ('.png', '.jpg', '.jpeg')):
@@ -286,9 +302,8 @@ def show_request_management_content(parent_frame):
                             ctk_img = ctk.CTkImage(light_image=pil_img, size=(pil_img.width, pil_img.height))
                             label = ctk.CTkLabel(info_frame, text="", image=ctk_img)
                             label.image = ctk_img
-                            # Make clickable: bind click to open popup and change cursor
                             label.bind("<Button-1>", lambda e: open_image_popup(file_path))
-                            label.configure(cursor="hand2")  # Hand cursor on hover
+                            label.configure(cursor="hand2")
                             return label
                         except Exception:
                             return ctk.CTkLabel(info_frame, text="Error loading image", font=data_font,
@@ -299,31 +314,30 @@ def show_request_management_content(parent_frame):
 
                 info_to_display = {
                     "Name:": f"{details['firstname']} {details['lastname']}",
-                    "Age:": str(details['age']) if details['age'] else 'N/A',
-                    "Gender:": details['gender'] or 'N/A',
-                    "Address:": details['address'] or 'N/A',
-                    "Valid ID:": display_file_or_text(details['valid_id']),
-                    "2nd Valid ID:": display_file_or_text(details['second_valid_id']),
-                    "DTI:": display_file_or_text(details['dti_path']),
-                    "Proof of Payment:": display_file_or_text(details['prof_of_payment']),
-                    "Purpose:": details['purpose'] or 'N/A'
+                    "Age:": str(details.get('age')) if details.get('age') else 'N/A',
+                    "Gender:": details.get('gender') or 'N/A',
+                    "Address:": details.get('address') or 'N/A',
+                    "Valid ID:": display_file_or_text(details.get('valid_id')),
+                    "2nd Valid ID:": display_file_or_text(details.get('second_valid_id')),
+                    "DTI:": display_file_or_text(details.get('dti_path')),
+                    "Proof of Payment:": display_file_or_text(details.get('prof_of_payment')),
+                    "Purpose:": details.get('purpose') or 'N/A'
                 }
+                
                 for i, (label_text, data_widget) in enumerate(info_to_display.items(), start=1):
                     ctk.CTkLabel(info_frame, text=label_text, font=label_font, text_color="black", anchor="w").grid(
                         row=i, column=0, padx=(0, 10), pady=8, sticky="w")
                     if isinstance(data_widget, str):
                         ctk.CTkLabel(info_frame, text=data_widget, font=data_font, text_color="black", anchor="w",
-                                     wraplength=300).grid(row=i, column=1, padx=(0, 10), pady=8, sticky="w")
+                                    wraplength=300).grid(row=i, column=1, padx=(0, 10), pady=8, sticky="w")
                     else:
-                        # Assume it's a widget (e.g., image label)
                         data_widget.grid(row=i, column=1, padx=(0, 10), pady=8, sticky="w")
+                
                 info_frame.grid_rowconfigure(len(info_to_display) + 1, weight=1)
 
-                button_frame = ctk.CTkFrame(main_content_frame, fg_color="transparent")
-                button_frame.grid(row=1, column=0, columnspan=2, pady=(10, 0), sticky="ew")
-                button_frame.grid_columnconfigure((0, 1, 2), weight=1)
-                ctk.CTkButton(button_frame, text="Close", command=popup.destroy, fg_color=VIEW_COLOR,
-                              hover_color=SIDEBAR_BTN_HOVER).grid(row=0, column=1, padx=10, pady=10, sticky="ew")
+                
+                ctk.CTkButton(button_frame, text="Close", command=popup.destroy, width=100, fg_color=VIEW_COLOR,
+                hover_color=SIDEBAR_BTN_HOVER).grid(row=0, column=2, padx=10, pady=10, sticky="ew")
 
             def process_action(req_id, btn):
                 if btn.cget("text") == "Process":
@@ -487,7 +501,7 @@ def show_resident_accounts_content(parent_frame):
             print("No verification data found for resident_id:", res_id)
             return
 
-        # --- 1. CREATE THE POPUP WINDOW ---
+        # pag create ng pop up sa view resident data
         popup = ctk.CTkToplevel(parent_frame)
         popup.title("Resident Verification")
         popup.geometry("800x550") 
@@ -501,7 +515,7 @@ def show_resident_accounts_content(parent_frame):
             except Exception as e:
                 print(f"Failed to set window icon: {e}")
 
-        # --- 2. CREATE NEW THEMED HEADER ---
+        # --- headerzz
         header_frame = ctk.CTkFrame(popup, fg_color=VIEW_COLOR, height=60, corner_radius=0)
         header_frame.pack(side="top", fill="x")
         header_frame.grid_columnconfigure(1, weight=1)
@@ -519,7 +533,7 @@ def show_resident_accounts_content(parent_frame):
         )
         title_label.grid(row=0, column=1, padx=(10, 20), pady=10, sticky="ew")
 
-        # --- 3. CREATE MAIN CONTENT FRAME ---
+        # --- 3. main frame sa view 
         main_content_frame = ctk.CTkFrame(popup, fg_color="transparent")
         main_content_frame.pack(fill="both", expand=True, padx=20, pady=(0, 20))
 
@@ -528,7 +542,7 @@ def show_resident_accounts_content(parent_frame):
         main_content_frame.grid_rowconfigure(0, weight=1)    
         main_content_frame.grid_rowconfigure(1, weight=0)    
 
-        # --- 4. CREATE FRAMES for Image, Info, Buttons ---
+        # --- 4. frames para sa images
         image_frame = ctk.CTkFrame(main_content_frame, fg_color="transparent")
         image_frame.grid(row=0, column=0, padx=(0, 10), pady=(20, 10), sticky="nsew")
         image_frame.grid_rowconfigure(0, weight=1)
@@ -543,7 +557,6 @@ def show_resident_accounts_content(parent_frame):
         button_frame = ctk.CTkFrame(main_content_frame, fg_color="transparent")
         button_frame.grid(row=1, column=0, columnspan=2, pady=(10, 0), sticky="ew")
 
-        # --- 5. POPULATE IMAGE FRAME (No border) ---
         
         image_display_size = 250 # Set the desired size for the image
         
@@ -552,17 +565,16 @@ def show_resident_accounts_content(parent_frame):
             text="No Image Provided", 
             width=image_display_size,   # 250
             height=image_display_size,  # 250
-            # --- MODIFICATION: Set background to transparent ---
+    
             fg_color="transparent",
             corner_radius=10
         )
-        image_label.grid(row=0, column=0, sticky="") # This centers the label
+        image_label.grid(row=0, column=0, sticky="") # center labels
 
         image_path = user_data.get('profile_picture')
         if image_path:
             try:
                 pil_image = Image.open(image_path)
-                # --- MODIFICATION: Image size matches label size ---
                 ctk_image = ctk.CTkImage(pil_image, size=(image_display_size, image_display_size)) 
                 image_label.configure(text="", image=ctk_image) 
                 image_label.image = ctk_image
@@ -572,7 +584,6 @@ def show_resident_accounts_content(parent_frame):
         else:
              print(f"No image path found for resident {res_id}")
 
-        # --- 6. POPULATE INFO FRAME (Left-aligned, centered) ---
         label_font = ctk.CTkFont(size=16, weight="bold")
         data_font = ctk.CTkFont(size=16) 
         
@@ -606,7 +617,7 @@ def show_resident_accounts_content(parent_frame):
         info_frame.grid_rowconfigure(len(info_to_display) + 1, weight=1) 
 
 
-        # --- 7. POPULATE BUTTON FRAME (No changes here) ---
+        # --- 7. POPULATE BUTTON FRAME ---
         button_frame.grid_columnconfigure((0, 1, 2), weight=1) 
 
         ctk.CTkButton(
@@ -672,7 +683,6 @@ def show_resident_accounts_content(parent_frame):
 
         ctk.CTkButton(popup, text="Send Rejection", command=send_reject).pack(pady=10)
         
-    # --- END OF HELPER FUNCTION DEFINITIONS ---
 
     pending_residents = get_pending_verification_residents()
     approved_residents = get_approved_residents()
@@ -715,10 +725,7 @@ def show_resident_accounts_content(parent_frame):
             action_buttons_frame = ctk.CTkFrame(row_frame, fg_color="transparent")
             action_buttons_frame.grid(row=0, column=3, sticky="e")
             
-            # ---!!! ALL BUTTONS MOVED HERE, INSIDE THE LOOP !!!---
             
-            # *** BUG FIX HERE: ***
-            # Added 'parent_frame' to the view_action call
             ctk.CTkButton(action_buttons_frame, text="View", width=60, height=25, fg_color=VIEW_COLOR, font=ctk.CTkFont(size=10), 
                           command=lambda id=resident['id']: view_action(id, parent_frame)).pack(side="left", padx=2)
                           
@@ -730,7 +737,7 @@ def show_resident_accounts_content(parent_frame):
                           command=lambda id=resident['id'], email=resident['email']: reject_action(id, email)).pack(
                 side="left", padx=2)
 
-    # --- "Verified Residents" Section (no changes needed here) ---
+    # --- "Verified Residents" Section ---
     approved_title_text = f"Verified Residents ({len(approved_residents)})"
     approved_title = ctk.CTkLabel(scrollable_frame, text=approved_title_text, font=ctk.CTkFont(size=18, weight="bold"), anchor="w")
     approved_title.pack(fill="x", pady=(20, 5), padx=10)
@@ -763,7 +770,6 @@ def get_full_user_data_by_id(resident_id):
     conn = get_connection()
     cur = conn.cursor()
     try:
-        # --- MODIFICATION: Added 'profile_picture' to the query ---
         cur.execute("""
             SELECT firstname, lastname, dob, place_of_birth, age, civil_status, gender, profile_picture_path
             FROM resident WHERE id = %s
@@ -840,7 +846,6 @@ def show_staff_accounts_content(parent_frame):
             password_entry.delete(0, 'end')
             position_entry.delete(0, 'end')
             role_combobox.set("-Select Role-")
-            # Refresh the list (optional: reload the page or update existing_staff)
         else:
             status_label.configure(text=message, text_color="red")
 
@@ -900,13 +905,9 @@ def show_staff_accounts_content(parent_frame):
 
 def show_placeholder_content(parent_frame, page_name):
     """Shows simple placeholder text for pages that are not fully built yet."""
-    # (Placeholder function - collapsed for brevity)
     ctk.CTkLabel(parent_frame, text=f"Content for {page_name} goes here.", font=ctk.CTkFont(size=18), text_color="gray").pack(pady=50)
 
-# =============================================================================
-# --- Main Application Window ---
-# =============================================================================
-
+    # MAIN DASHBOARD!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! GAGAAHAHHAHAHA
 def start_admin_dashboard():
     # (Main app setup - collapsed for brevity)
     ctk.set_appearance_mode("light"); ctk.set_default_color_theme("blue")
@@ -917,18 +918,16 @@ def start_admin_dashboard():
     print("Creating Tkinter images from PIL image...")
     if barangay_logo_pil:
         try:
-            # NOW it's safe to create these because 'root' exists
             barangay_logo_ctk_image = ctk.CTkImage(barangay_logo_pil.copy(), size=(40, 40))
             barangay_logo_icon = ImageTk.PhotoImage(barangay_logo_pil.copy())
             print("Barangay logo and icon created successfully.")
             
-            # Set the main window icon right away
             root.iconphoto(True, barangay_logo_icon)
         except Exception as e:
             print(f"Error creating Tkinter images: {e}")
     else:
         print("Skipping Tkinter image creation, PIL image not loaded.")
-    # --- END OF IMAGE CONVERSION ---
+
 
     root.grid_columnconfigure(1, weight=1); root.grid_rowconfigure(0, weight=1)
     sidebar_frame = ctk.CTkFrame(root, width=250, fg_color=SIDEBAR_BG, corner_radius=0); sidebar_frame.grid(row=0, column=0, sticky="nsw"); sidebar_frame.grid_propagate(False)
@@ -945,13 +944,11 @@ def start_admin_dashboard():
     }
 
     def update_sidebar_selection(active_key):
-        # (Function remains the same - collapsed)
         for key, button_widget in button_widgets.items():
             is_active = (key == active_key)
             button_widget.configure(fg_color=ACTIVE_BTN_BG if is_active else "transparent", text_color=ACTIVE_BTN_TEXT if is_active else "white", font=ctk.CTkFont(size=14, weight="bold" if is_active else "normal"))
 
     def navigate_to(page_key):
-        # (Function remains the same)
         print(f"Navigating to {page_key}")
         if page_key not in nav_buttons: print(f"Error: Page key '{page_key}' not found."); return
         main_header_label.configure(text=nav_buttons[page_key][1])
@@ -965,7 +962,6 @@ def start_admin_dashboard():
         else: show_placeholder_content(dynamic_content_frame, "Unknown Page")
 
     # --- Sidebar Widgets ---
-    # (Sidebar creation remains the same - collapsed)
     sidebar_title = ctk.CTkLabel(sidebar_frame, text="P2SERVE Admin Panel", font=ctk.CTkFont(size=20, weight="bold"), text_color="white"); sidebar_title.pack(pady=20, padx=20, anchor="w")
     for key, (icon, text) in nav_buttons.items():
         button = ctk.CTkButton(sidebar_frame, text=f" {icon}  {text}", fg_color="transparent", text_color="white", hover_color=SIDEBAR_BTN_HOVER, font=ctk.CTkFont(size=14), anchor="w", height=40, corner_radius=8, command=lambda k=key: navigate_to(k)); button.pack(fill="x", padx=10, pady=5); button_widgets[key] = button
@@ -979,7 +975,6 @@ def start_admin_dashboard():
     navigate_to("dashboard")
 
     # --- Center & Maximize Window ---
-    # (Centering/Maximize logic remains the same - collapsed)
     root.update_idletasks(); width = 1200; height = 700; x = (root.winfo_screenwidth() // 2) - (width // 2); y = (root.winfo_screenheight() // 2) - (height // 2); root.geometry(f"{width}x{height}+{x}+{y}")
     root.state('zoomed')
 

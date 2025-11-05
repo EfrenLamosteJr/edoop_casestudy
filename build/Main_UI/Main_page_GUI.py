@@ -13,6 +13,40 @@ from auth import get_user_id_by_username, insert_document_request, get_full_user
 
 current_username = None
 
+# --- validation sa age sa profile page
+def validate_age_input(P):
+    """
+    Checks if the proposed new string 'P' is either empty or a valid non-negative integer.
+    """
+    if P == "":
+        return True # Allows the user to delete everything
+        
+    
+    try:
+        age_int = int(P)
+            
+        # Reject negative numbers
+        if age_int < 0:
+            return False
+                
+        # Reject single digits if they are less than 1 
+        if len(P) == 1 and age_int < 1: 
+            return False 
+            
+        # dapat 12 to 100 lang ung input
+        if len(P) >= 2:
+            if age_int < 12 or age_int > 100:
+                # Reject if the number is fully typed and outside the 12-100 range.
+                return False 
+            
+        # Limit to 3 digits (e.g., 100)
+        if len(P) > 3:
+            return False
+                
+        return True 
+    except ValueError:
+        return False # Reject the input
+
 
 # --- DATABASE FUNCTIONS --- DAPAT SA AUTH TO KASO NAHIHILO NA AKO E
 # ----- KUNIN DITO YUNG DATA GALING SA PROFILE ----- PAG WALA NON PA TO
@@ -85,7 +119,7 @@ def create_home_page(parent_frame):
     bg_photo_image_ref = None # Stored on canvas later
 
 
-    # Store officials' photo placeholders if needed later
+    # placeholders ng picture ng mga officials
     officials_placeholders = {}
     # --- Officials Data ---
     officials = [
@@ -104,7 +138,6 @@ def create_home_page(parent_frame):
         nonlocal original_pil_image, canvas, bg_photo_image_ref, officials_placeholders
         
         # --- NEW: Dictionary to hold image references ---
-        # We MUST store these, or they will be garbage collected and disappear
         canvas.official_images = {} 
         
         try:
@@ -124,7 +157,6 @@ def create_home_page(parent_frame):
                 
             except Exception as e:
                 print(f"ERROR loading background image from URL: {e}")
-                # ... (rest of your error handling) ...
                 return
 
         # --- Get Frame/Canvas Dimensions ---
@@ -153,7 +185,7 @@ def create_home_page(parent_frame):
         # 1. Draw Background Image
         canvas.create_image(0, 0, anchor='nw', image=canvas.bg_photo_image_ref, tags="background_image")
 
-        # --- Draw Welcome Text ---
+        # --- Welcome Text ---
         welcome_line1 = "Welcome to Barangay Poblacion II!"
         welcome_line2 = "Your digital gateway for barangay services."
         font_name = "Segoe UI"; color_white = "white"; color_outline = "black"; outline_offset = 2
@@ -181,7 +213,7 @@ def create_home_page(parent_frame):
         for dx, dy in offsets: canvas.create_text(center_x + dx, y_pos_line2 + dy, text=welcome_line2, fill=color_outline, font=font_obj2, tags="welcome_text", justify="center", width=actual_wrap_width)
         canvas.create_text(center_x, y_pos_line2, text=welcome_line2, fill=color_white, font=font_obj2, tags="welcome_text", justify="center", width=actual_wrap_width)
 
-        # --- Draw Elected Officials Section ---
+        # --- Elected Officials Section ---
         content_start_y = frame_height 
         section_padding = 50
         current_y = content_start_y + section_padding
@@ -199,9 +231,9 @@ def create_home_page(parent_frame):
         placeholder_size_captain = 200
         placeholder_x_captain = center_x - (placeholder_size_captain / 2); placeholder_y_captain = current_y
         
-        # --- NEW: Try to load and draw captain's image ---
+        # --- pag load ng image ni boss ---
         try:
-            response = requests.get(captain["image_path"]) # 'image_path' is now a URL
+            response = requests.get(captain["image_path"]) 
             response.raise_for_status()
             image_data = io.BytesIO(response.content)
             pil_img = Image.open(image_data)
@@ -218,7 +250,6 @@ def create_home_page(parent_frame):
             # Fallback: Draw the grey placeholder
             canvas.create_rectangle(placeholder_x_captain, placeholder_y_captain, placeholder_x_captain + placeholder_size_captain, placeholder_y_captain + placeholder_size_captain, fill=placeholder_bg, outline="", tags="officials")
             canvas.create_text(center_x, placeholder_y_captain + (placeholder_size_captain/2), text="Placeholder", fill="gray", font=("Arial", 10), anchor="center", tags="officials")
-        # --- END NEW ---
         
         # This text starts BELOW the placeholder/image
         current_y += placeholder_size_captain + 25 
@@ -241,10 +272,9 @@ def create_home_page(parent_frame):
         placeholder_size_kagawad = 150; kagawad_start_y = current_y
         max_row_height = 0 
 
-        # --- NEW: Logic for centering the last row ---
+        # --- logic for centering the last row ---
         num_kagawads = len(kagawads)
         
-        # Find out how many items are in the last row
         num_in_last_row = num_kagawads % num_columns
         if num_in_last_row == 0:
             num_in_last_row = num_columns # Last row is full, treat normally
@@ -255,7 +285,6 @@ def create_home_page(parent_frame):
         # Calculate the padding needed to center the last row's items
         last_row_total_width = num_in_last_row * column_width
         left_padding = (frame_width - last_row_total_width) / 2
-        # --- END NEW ---
 
         for i, kagawad in enumerate(kagawads):
             col = i % num_columns
@@ -265,7 +294,6 @@ def create_home_page(parent_frame):
                 kagawad_start_y += max_row_height + section_padding 
                 max_row_height = 0 
 
-            # --- MODIFIED: base_x calculation ---
             # Check if we are on the last row AND it's not a full row
             if row == last_row_index and num_in_last_row != num_columns:
                 # We are in the non-full last row, use padding
@@ -275,12 +303,12 @@ def create_home_page(parent_frame):
             else:
                 # This is a full row, calculate normally
                 base_x = (col * column_width) + (column_width / 2)
-            # --- END MODIFIED ---
+           
             
             base_y = kagawad_start_y
             ph_y = base_y
             
-            # --- NEW: Try to load and draw kagawad's image ---
+            # --- pag load ng mga image nila kagawad---
             try:
                 response = requests.get(kagawad["image_path"]) # 'image_path' is now a URL
                 response.raise_for_status()
@@ -296,7 +324,6 @@ def create_home_page(parent_frame):
                 canvas.create_image(base_x, ph_y, anchor="n", image=tk_img, tags="officials")
 
             except Exception as e:
-                # We can print the error, but we'll still draw the placeholder
                 if kagawad["image_path"]: # Only print error if a path was provided
                      print(f"Error loading image for {kagawad['name']}: {e}")
                 # Fallback: Draw the grey placeholder
@@ -320,16 +347,15 @@ def create_home_page(parent_frame):
 
         # Background of Elected Officials #
         try:
-            # 1. Define Your Gradient Colors (You can change these!)
-            # I'm guessing your header blue is something like this:
-            color_start_hex = "#87CEFA"  # Bright blue (like a header)
+
+            color_start_hex = "#87CEFA"  # Bright blue 
             color_end_hex   = "#012A4A"  # Dark navy blue
 
-            # 2. Convert hex colors to (R, G, B) tuples
+            # pag convert ng hex to rgb
             r_s, g_s, b_s = (int(color_start_hex.lstrip('#')[i:i+2], 16) for i in (0, 2, 4))
             r_e, g_e, b_e = (int(color_end_hex.lstrip('#')[i:i+2], 16) for i in (0, 2, 4))
 
-            # 3. Get the dimensions for the gradient
+            # Get the dimensions for the gradient
             gradient_width = frame_width
             gradient_height = current_y - content_start_y # This is the height of the whole content section
             
@@ -337,13 +363,12 @@ def create_home_page(parent_frame):
             if gradient_width < 1: gradient_width = 1
             if gradient_height < 1: gradient_height = 1
 
-            # 4. Create a new PIL Image in memory
+            # Create a new PIL Image in memory
             pil_gradient = Image.new("RGB", (gradient_width, gradient_height))
             draw = ImageDraw.Draw(pil_gradient)
 
-            # 5. Draw the gradient one line at a time
+            # Draw the gradient one line at a time
             for y in range(gradient_height):
-                # Calculate how far down the gradient we are (0.0 to 1.0)
                 ratio = y / gradient_height
                 
                 # "Interpolate" the color for this line
@@ -354,22 +379,19 @@ def create_home_page(parent_frame):
                 # Draw the 1-pixel-high line
                 draw.line([(0, y), (gradient_width, y)], fill=(r, g, b))
 
-            # 6. Convert the PIL image to a Tkinter PhotoImage
-            #    We MUST store this on canvas or it gets garbage-collected
+            # Convert the PIL image to a Tkinter PhotoImage
             canvas.gradient_bg_ref = ImageTk.PhotoImage(pil_gradient)
 
-            # 7. Draw the new gradient image onto the canvas
+            # Draw the new gradient image onto the canvas
             canvas.create_image(0, content_start_y, anchor='nw', image=canvas.gradient_bg_ref, tags="content_bg")
 
         except Exception as e:
             print(f"ERROR creating gradient: {e}")
-            # If the gradient fails, draw a solid dark blue rectangle instead
             canvas.create_rectangle(0, content_start_y, frame_width, current_y, 
                                      fill="#012A4A", # Fallback solid color
                                      outline="", 
                                      tags="content_bg")
         
-        # This line is the same as before and still works!
         canvas.tag_lower("content_bg", "officials")
 
         # --- Update Scroll Region ---
@@ -426,7 +448,7 @@ def create_services_page(parent_frame):
     except:
         default_text_color = ("#000", "#FFF") # Fallback color
 
-    # --- (requirements_data remains the same as last time) ---
+    # --- requirements sa documents ---
     requirements_data = {
         "Barangay Clearance": {
             "title": "Barangay Clearance Requirements",
@@ -548,8 +570,6 @@ def create_services_page(parent_frame):
 
     def hide_tooltip(event=None):
         tooltip_label.place_forget()
-    # --- END OF TOOLTIP CODE ---
-
 
     def show_info_popup(title, message):
         popup = ctk.CTkToplevel(parent_frame)
@@ -562,7 +582,7 @@ def create_services_page(parent_frame):
         ctk.CTkButton(popup, text="OK", width=100, command=popup.destroy).pack(pady=20)
 
 
-    # --- NEW: PLACEHOLDER HELPER FUNCTIONS ---
+    # --- PLACEHOLDER HELPER FUNCTIONS ---
     def on_textbox_focus_in(event, textbox, placeholder_text):
         """Removes placeholder text on focus."""
         if textbox.get("1.0", "end-1c").strip() == placeholder_text:
@@ -574,10 +594,9 @@ def create_services_page(parent_frame):
         if not textbox.get("1.0", "end-1c").strip():
             textbox.insert("1.0", placeholder_text)
             textbox.configure(text_color=placeholder_color)
-    # --- END OF NEW FUNCTIONS ---
 
 
-    # --- MODIFIED: submit_all_documents now checks for placeholder text ---
+    # --- submit_all_documents now checks for placeholder text ---
     def submit_all_documents():
         doc_name = selected_info.get("document_name")
         if not doc_name: return
@@ -676,7 +695,7 @@ def create_services_page(parent_frame):
             status_label.configure(text=f"Uploaded: {filename}", text_color="green")
 
 
-    # --- MODIFIED: display_requirements now adds border and placeholder ---
+    # --- display_requirements now adds border and placeholder ---
     def display_requirements(document_name):
         uploaded_files.clear()
         text_inputs.clear()
@@ -734,14 +753,14 @@ def create_services_page(parent_frame):
                 file_status_label.pack(side="left", anchor="w", padx=10)
 
             elif req_type == "text":
-                # --- MODIFIED TEXT BOX block ---
+                #
                 textbox = ctk.CTkTextbox(
                     requirements_frame,
                     height=80,
                     corner_radius=8,
                     font=ctk.CTkFont(size=13),
-                    border_width=1,  # <-- ADDED BORDER
-                    border_color="#9A9A9A"  # <-- ADDED BORDER COLOR
+                    border_width=1, 
+                    border_color="#9A9A9A"  
                 )
                 textbox.pack(fill="x", pady=(5, 15), padx=(15, 0))
 
@@ -883,19 +902,34 @@ def create_profile_page(parent_frame):
     # Age
     age_options = ["-Select Age-"] + [str(i) for i in range(18, 101)]
     ctk.CTkLabel(details_frame, text="Age:", font=ctk.CTkFont(size=14, weight="bold"), anchor="w").grid(row=current_row, column=0, sticky="w", padx=(0, 10), pady=5)
+
     if is_approved:
         ctk.CTkLabel(details_frame, text=str(user.get("age", "N/A")), font=ctk.CTkFont(size=14)).grid(row=current_row, column=1, sticky="w", pady=5)
     else:
-        age_combobox = ctk.CTkComboBox(details_frame, font=ctk.CTkFont(size=14), corner_radius=5, values=age_options, state="readonly")
-        current_value = str(user.get("age")) if user.get("age") is not None else None
-        if current_value in age_options:
-            age_combobox.set(current_value)
-        else:
-            age_combobox.set("-Select Age-")
-        age_combobox.grid(row=current_row, column=1, sticky="ew", pady=5)
-        fields["age"] = age_combobox
-    current_row += 1
+        # --- Define the Validation Command ---
+        # The register method makes the validation function available to Tkinter/CustomTkinter
+        vcmd = details_frame.register(validate_age_input) 
+        
+        # --- Create the CTkEntry with Validation Options ---
+        age_entry = ctk.CTkEntry(
+            details_frame, 
+            font=ctk.CTkFont(size=14), 
+            corner_radius=5,
+            validate="key", # 'key' means validate on every key press
+            # The validation function is called with %P (new value)
+            validatecommand=(vcmd, '%P') 
+        )
+        
+        # Set the current value if it exists
+        current_value = str(user.get("age")) if user.get("age") is not None else ""
+        if current_value:
+            age_entry.insert(0, current_value)
 
+        age_entry.grid(row=current_row, column=1, sticky="ew", pady=5)
+        fields["age"] = age_entry
+
+    current_row += 1
+        
     # Civil Status
     civil_status_options = ["-Select-", "Single", "Married", "Widowed", "Separated"]
     ctk.CTkLabel(details_frame, text="Civil Status:", font=ctk.CTkFont(size=14, weight="bold"), anchor="w").grid(
@@ -949,15 +983,37 @@ def create_profile_page(parent_frame):
     def submit_verification(fields, status_label):
         dob = fields["dob"].get().strip()
         pob = fields["place_of_birth"].get().strip()
-        age = fields["age"].get()
+        age_str = fields["age"].get().strip() # Get the string value from the entry
         civil_status = fields["civil_status"].get()
         gender = fields["gender"].get()
 
-        if not dob or not pob or age == "-Select Age-" or civil_status == "-Select-" or gender == "-Select-":
+        # Check 1: Ensure all fields are filled
+        if not dob or not pob or civil_status == "-Select-" or gender == "-Select-" or not age_str:
             status_label.configure(text="Error: Please fill all additional information fields.", text_color="red")
             return
+            
+        # --- CHECK 2: AGE VALIDATION (Minimum 12, Maximum 100) ---
+        try:
+            age = int(age_str)
+            
+            # Reject if less than 12
+            if age < 12:
+                 status_label.configure(text="Error: Minimum age required is 12 years old.", text_color="red")
+                 return
+            
+            # Reject if greater than 100
+            if age > 100:
+                 status_label.configure(text="Error: Age is unreasonably high.", text_color="red")
+                 return
+                 
+        except ValueError:
+            
+            status_label.configure(text="Error: Age must be a valid whole number.", text_color="red")
+            return
+        # --- END AGE SUBMISSION VALIDATION ---
 
-        success = submit_verification_request(current_username, dob, pob, int(age), civil_status, gender)
+        # Proceed with submission, using the validated 'age' integer
+        success = submit_verification_request(current_username, dob, pob, age, civil_status, gender)
         if success:
             status_label.configure(text="Verification submitted successfully!", text_color="green")
             # Refresh page to show pending status
@@ -1035,7 +1091,7 @@ def create_my_requests_page(parent_frame):
         ctk.CTkLabel(header_frame, text="DATE REQUESTED", font=ctk.CTkFont(weight="bold")).grid(row=0, column=1, sticky="w", padx=5)
         ctk.CTkLabel(header_frame, text="STATUS", font=ctk.CTkFont(weight="bold")).grid(row=0, column=2, sticky="e", padx=5)
 
-        # Status color mapping (matching admin panel)
+        # Status color mapping
         status_colors = {
             "Pending": "#F1C40F",  # Yellow
             "Processing": "#3498DB",  # Blue
@@ -1069,8 +1125,9 @@ def create_my_requests_page(parent_frame):
                                  text_color="gray")
     content_label.place(relx=0.5, rely=0.5, anchor="center")
     
+        
 # =============================================================================
-# --- MAIN APPLICATION (MODIFIED) ---
+# --- MAIN APPLICATION ---
 # =============================================================================
 
 def start_mainhomepage(username=None):
@@ -1188,11 +1245,10 @@ def start_mainhomepage(username=None):
         btn.pack(side="left", fill="both", expand=True)
         return btn
 
-    # --- MODIFIED: Button creation ---
+    # --- Button creation ---
     home_btn = create_nav_button("Home")
     services_btn = create_nav_button("Services")
     my_requests_btn = create_nav_button("My Requests")  # <-- ADDED
-    # --- END OF MODIFICATION ---
 
     content_frame = ctk.CTkFrame(root, fg_color="transparent", corner_radius=0) # Make frame transparent
     content_frame.pack(fill="both", expand=True)
