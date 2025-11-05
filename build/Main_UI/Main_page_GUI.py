@@ -1248,7 +1248,7 @@ def start_mainhomepage(username=None):
     # --- Button creation ---
     home_btn = create_nav_button("Home")
     services_btn = create_nav_button("Services")
-    my_requests_btn = create_nav_button("My Requests")  # <-- ADDED
+    my_requests_btn = create_nav_button("My Requests") 
 
     content_frame = ctk.CTkFrame(root, fg_color="transparent", corner_radius=0) # Make frame transparent
     content_frame.pack(fill="both", expand=True)
