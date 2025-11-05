@@ -887,7 +887,7 @@ def create_profile_page(parent_frame):
         fields["dob"] = dob_entry
     current_row += 1
 
-    # Place of Birth
+    # Place of Birth asfasdfsd
     ctk.CTkLabel(details_frame, text="Place of Birth:", font=ctk.CTkFont(size=14, weight="bold"), anchor="w").grid(row=current_row, column=0, sticky="w", padx=(0, 10), pady=5)
     if is_approved:
         ctk.CTkLabel(details_frame, text=user.get("place_of_birth", "N/A"), font=ctk.CTkFont(size=14)).grid(
