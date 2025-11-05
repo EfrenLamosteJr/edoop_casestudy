@@ -6,7 +6,8 @@ import os
 import requests
 from database_connector import get_connection
 from auth import (create_staff_account, send_rejection_email, send_approval_email, approve_verification_request, reject_verification_request,
-                  send_finish_email, update_request_status, delete_request, get_finished_requests, get_request_details_with_resident, get_pending_requests)
+                  send_finish_email, update_request_status, delete_request, get_finished_requests, get_request_details_with_resident, get_pending_requests,
+                  send_rejection_document_email)
 
 SIDEBAR_BG = "#3498db"
 SIDEBAR_BTN_HOVER = "#2980b9"
@@ -370,9 +371,9 @@ def show_request_management_content(parent_frame):
                     if not reason:
                         ctk.CTkLabel(reject_popup, text="Please enter a reason.", text_color="red").pack(pady=10)
                         return
-                    if send_rejection_email(details['email'], reason) and delete_request(req_id):
+                    if send_rejection_document_email(details['email'], reason) and delete_request(req_id):
                         refresh_content()
-                        reject_popup.destroy()  # Close the reject popup
+                        reject_popup.destroy()
                     else:
                         ctk.CTkLabel(parent_frame, text="Error rejecting request.", text_color="red").pack(pady=10)
                 ctk.CTkButton(reject_popup, text="Send Rejection", command=send_reject).pack(pady=10)

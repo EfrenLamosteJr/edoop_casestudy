@@ -255,7 +255,6 @@ def get_user_id_by_username(username):
 
 # -------------------- UPDATE USER PROFILE --------------------
 def update_user_profile_by_username(username, firstname, lastname, profile_picture_path):
-    """Update user profile data by username."""
     conn = get_connection()
     cur = conn.cursor()
     try:
@@ -309,7 +308,6 @@ def get_full_user_data_by_id(resident_id):
 
 # -------------------- SEND FINISH EMAIL --------------------
 def send_finish_email(to_email):
-    """Sends a 'ready for pickup' email to the resident."""
     try:
         with open("finish_email.html", "r", encoding="utf-8") as file:
             html_content = file.read()
@@ -333,10 +331,36 @@ def send_finish_email(to_email):
     except Exception as error:
         print(f"Error sending finish email: {error}")
         return False
+    # -------------------- SEND REJECT DOCUMENT EMAIL --------------------
+def send_rejection_document_email(to_email, reason):
+    try:
+        with open("rejectdocument.html", "r", encoding="utf-8") as file:
+            html_content = file.read()
+        html_content = html_content.replace("{{ reason }}", reason)
+
+        server = smtplib.SMTP('smtp.gmail.com', 587)
+        server.starttls()
+        from_email = "efrenlamoste5@gmail.com"
+        server.login(from_email, 'zqpq njoj xubi pjzp')
+
+        msg = EmailMessage()
+        msg['Subject'] = "Account Registration Rejected"
+        msg['From'] = from_email
+        msg['To'] = to_email
+        msg.set_content(
+            f"Your document request has been rejected.\n\nReason: {reason}\n\nPlease contact support for more information.")
+        msg.add_alternative(html_content, subtype='html')
+
+        server.send_message(msg)
+        server.quit()
+        print(f"Rejection document email sent to {to_email}")
+        return True
+    except Exception as error:
+        print(f"Error sending email: {error}")
+        return False
 
 # -------------------- UPDATE REQUEST STATUS --------------------
 def update_request_status(request_id, new_status):
-    """Updates the status of a document request."""
     conn = get_connection()
     cur = conn.cursor()
     try:
@@ -352,7 +376,6 @@ def update_request_status(request_id, new_status):
 
 # -------------------- DELETE REQUEST --------------------
 def delete_request(request_id):
-    """Deletes a document request."""
     conn = get_connection()
     cur = conn.cursor()
     try:
@@ -368,7 +391,6 @@ def delete_request(request_id):
 
 # -------------------- GET FINISHED REQUESTS --------------------
 def get_finished_requests():
-    """Fetches all finished requests."""
     conn = get_connection()
     cur = conn.cursor()
     try:
@@ -389,7 +411,6 @@ def get_finished_requests():
 
 # -------------------- GET REQUEST DETAILS WITH RESIDENT --------------------
 def get_request_details_with_resident(request_id):
-    """Fetches request details with resident info using JOIN."""
     conn = get_connection()
     cur = conn.cursor()
     try:
