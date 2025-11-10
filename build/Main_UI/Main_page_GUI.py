@@ -440,22 +440,50 @@ def create_services_page(parent_frame):
     BTN_SELECTED_COLOR = "#28A745"
     BTN_HOVER_COLOR = "#5dade2"
 
-    # This stores the default text color, which we'll need for the placeholder
     placeholder_color = "gray"
-    # Try to get the system's default text color
     try:
         default_text_color = ctk.ThemeManager.theme["CTkTextbox"]["text_color"]
     except:
         default_text_color = ("#000", "#FFF") # Fallback color
 
-    # --- requirements sa documents ---
+    # --- QR Code Placeholder Setup ---
+    QR_CODE_URL = "https://raw.githubusercontent.com/EfrenLamosteJr/edoop_casestudy/refs/heads/main/build/Image_Resources/QR-Code.PNG"
+    QR_SIZE = 200
+    qr_image_tk = None
+
+    try:
+        # Download and process the image from the URL
+        response = requests.get(QR_CODE_URL)
+        response.raise_for_status() 
+        image_data = io.BytesIO(response.content)
+        original_qr_image = Image.open(image_data)
+        resized_qr_image = original_qr_image.resize((QR_SIZE, QR_SIZE), Image.Resampling.LANCZOS)
+        
+        qr_image_tk = ctk.CTkImage(light_image=resized_qr_image, 
+                                   dark_image=resized_qr_image, 
+                                   size=(QR_SIZE, QR_SIZE))
+
+    except Exception as e:
+        print(f"Error processing QR code image: {e}. Using generic placeholder.")
+        # Fallback: Create a simple dummy placeholder
+        qr_image_placeholder = Image.new("RGB", (QR_SIZE, QR_SIZE), color="#E74C3C") 
+        draw = ImageDraw.Draw(qr_image_placeholder)
+        draw.text((30, 90), "QR Load Failed", fill=(255, 255, 255), font=("Arial", 14))
+        qr_image_tk = ctk.CTkImage(light_image=qr_image_placeholder, dark_image=qr_image_placeholder, size=(QR_SIZE, QR_SIZE))
+
+
+    # --- requirements sa documents (UPDATED: Added QR Code entry) ---
+    # The QR code payment step is now inserted before 'Proof of Payment'
+    qr_payment_step = ("QR Code Payment", "STRICTLY GCASH ONLY. Scan this QR code to send the required ₱50.00 payment.", "qr_code")
+
     requirements_data = {
         "Barangay Clearance": {
             "title": "Barangay Clearance Requirements",
             "content": [
                 ("Valid ID", "Upload a clear image of any Government Issued ID addressed to Poblacion 2 (e.g., Driver's License, Voter's ID, Postal ID)", "file"),
                 ("2nd Valid ID", "Upload a clear image of any Government Issued ID addressed to Poblacion 2 (e.g., Driver's License, Voter's ID, Postal ID)", "file"),
-                ("Proof of Payment", "Upload a screenshot of your payment confirmation.", "file"),
+                qr_payment_step,  # <--- QR CODE INSERTED HERE
+                ("Proof of Payment", "Upload a screenshot of your payment confirmation from GCash.", "file"),
                 ("Purpose of Request", "e.g., For employment, for travel, etc.", "text"),
             ]
         },
@@ -465,7 +493,8 @@ def create_services_page(parent_frame):
                 ("Valid ID", "Upload a clear image of any Government Issued ID addressed to Poblacion 2 (e.g., Driver's License, Voter's ID, Postal ID)", "file"),
                 ("2nd Valid ID", "Upload a clear image of any Government Issued ID addressed to Poblacion 2 (e.g., Driver's License, Voter's ID, Postal ID)", "file"),
                 ("DTI Registration", "Upload a clear picture or copy of your DTI certificate.", "file"),
-                ("Proof of Payment", "Upload a screenshot of your payment confirmation.", "file"),
+                qr_payment_step,  # <--- QR CODE INSERTED HERE
+                ("Proof of Payment", "Upload a screenshot of your payment confirmation from GCash.", "file"),
                 ("Purpose of Request", "e.g., For building construction permit.", "text"),
             ]
         },
@@ -475,7 +504,8 @@ def create_services_page(parent_frame):
                 ("Valid ID", "Upload a clear image of any Government Issued ID addressed to Poblacion 2 (e.g., Driver's License, Voter's ID, Postal ID)", "file"),
                 ("2nd Valid ID", "Upload a clear image of any Government Issued ID addressed to Poblacion 2 (e.g., Driver's License, Voter's ID, Postal ID)", "file"),
                 ("DTI Registration", "Upload a clear picture or copy of your DTI certificate.", "file"),
-                ("Proof of Payment", "Upload a screenshot of your payment confirmation.", "file"),
+                qr_payment_step,  # <--- QR CODE INSERTED HERE
+                ("Proof of Payment", "Upload a screenshot of your payment confirmation from GCash.", "file"),
                 ("Purpose of Request", "e.g., For new business, or renewal.", "text"),
             ]
         },
@@ -484,7 +514,8 @@ def create_services_page(parent_frame):
             "content": [
                 ("Valid ID", "Upload a clear image of any Government Issued ID addressed to Poblacion 2 (e.g., Driver's License, Voter's ID, Postal ID)", "file"),
                 ("2nd Valid ID", "Upload a clear image of any Government Issued ID addressed to Poblacion 2 (e.g., Driver's License, Voter's ID, Postal ID)", "file"),
-                ("Proof of Payment", "Upload a screenshot of your payment confirmation.", "file"),
+                qr_payment_step,  # <--- QR CODE INSERTED HERE
+                ("Proof of Payment", "Upload a screenshot of your payment confirmation from GCash.", "file"),
                 ("Purpose of Request", "e.g., For local employment application.", "text"),
             ]
         },
@@ -493,7 +524,8 @@ def create_services_page(parent_frame):
             "content": [
                 ("Valid ID", "Upload a clear image of any Government Issued ID addressed to Poblacion 2 (e.g., Driver's License, Voter's ID, Postal ID)", "file"),
                 ("2nd Valid ID", "Upload a clear image of any Government Issued ID addressed to Poblacion 2 (e.g., Driver's License, Voter's ID, Postal ID)", "file"),
-                ("Proof of Payment", "Upload a screenshot of your payment confirmation.", "file"),
+                qr_payment_step,  # <--- QR CODE INSERTED HERE
+                ("Proof of Payment", "Upload a screenshot of your payment confirmation from GCash.", "file"),
                 ("Purpose of Request", "e.g., For medical assistance, financial aid.", "text"),
             ]
         },
@@ -502,7 +534,8 @@ def create_services_page(parent_frame):
             "content": [
                 ("Valid ID", "Upload a clear image of any Government Issued ID addressed to Poblacion 2 (e.g., Driver's License, Voter's ID, Postal ID)", "file"),
                 ("2nd Valid ID", "Upload a clear image of any Government Issued ID addressed to Poblacion 2 (e.g., Driver's License, Voter's ID, Postal ID)", "file"),
-                ("Proof of Payment", "Upload a screenshot of your payment confirmation.", "file"),
+                qr_payment_step,  # <--- QR CODE INSERTED HERE
+                ("Proof of Payment", "Upload a screenshot of your payment confirmation from GCash.", "file"),
                 ("Purpose of Request", "e.g., For proof of address, school enrollment.", "text"),
             ]
         },
@@ -511,7 +544,8 @@ def create_services_page(parent_frame):
             "content": [
                 ("Valid ID", "Upload a clear image of any Government Issued ID addressed to Poblacion 2 (e.g., Driver's License, Voter's ID, Postal ID)", "file"),
                 ("2nd Valid ID", "Upload a clear image of any Government Issued ID addressed to Poblacion 2 (e.g., Driver's License, Voter's ID, Postal ID)", "file"),
-                ("Proof of Payment", "Upload a screenshot of your payment confirmation.", "file"),
+                qr_payment_step,  # <--- QR CODE INSERTED HERE
+                ("Proof of Payment", "Upload a screenshot of your payment confirmation from GCash.", "file"),
                 ("Purpose of Request", "e.g., To avail of RA 11261 benefits.", "text"),
 
             ]
@@ -522,24 +556,14 @@ def create_services_page(parent_frame):
                 ("Valid ID", "Upload a clear image of any Government Issued ID addressed to Poblacion 2 (e.g., Driver's License, Voter's ID, Postal ID)", "file"),
                 ("2nd Valid ID", "Upload a clear image of any Government Issued ID addressed to Poblacion 2 (e.g., Driver's License, Voter's ID, Postal ID)", "file"),
                 ("DTI Registration", "Upload a clear picture or copy of your DTI certificate.", "file"),
-                ("Proof of Payment", "Upload a screenshot of your payment confirmation.", "file"),
+                qr_payment_step,  # <--- QR CODE INSERTED HERE
+                ("Proof of Payment", "Upload a screenshot of your payment confirmation from GCash.", "file"),
                 ("Purpose of Request", "e.g., To get order of payment for business.", "text"),
             ]
         },
     }
 
-    scrollable_frame = ctk.CTkScrollableFrame(parent_frame, fg_color="transparent")
-    scrollable_frame.pack(fill="both", expand=True, padx=40, pady=20)
-    button_container_frame = ctk.CTkFrame(scrollable_frame, fg_color="transparent")
-    button_container_frame.pack(fill="x", expand=True)
-    requirements_frame = ctk.CTkFrame(scrollable_frame, fg_color="transparent")
-    requirements_frame.pack(fill="x", expand=True, pady=(20, 0))
-    title_label = ctk.CTkLabel(button_container_frame, text="Request a Document (Click to Select)",
-                               font=ctk.CTkFont(size=24, weight="bold"), text_color="black")
-    title_label.pack(anchor="w", pady=(0, 20))
-
-
-    # --- TOOLTIP WIDGET AND FUNCTIONS ---
+    # --- TOOLTIP WIDGET AND FUNCTIONS --- (Keep the same)
     root_window = parent_frame.winfo_toplevel()
     tooltip_label = ctk.CTkLabel(
         root_window,
@@ -582,27 +606,24 @@ def create_services_page(parent_frame):
         ctk.CTkButton(popup, text="OK", width=100, command=popup.destroy).pack(pady=20)
 
 
-    # --- PLACEHOLDER HELPER FUNCTIONS ---
+    # --- PLACEHOLDER HELPER FUNCTIONS --- (Keep the same)
     def on_textbox_focus_in(event, textbox, placeholder_text):
-        """Removes placeholder text on focus."""
         if textbox.get("1.0", "end-1c").strip() == placeholder_text:
             textbox.delete("1.0", "end")
             textbox.configure(text_color=default_text_color)
 
     def on_textbox_focus_out(event, textbox, placeholder_text):
-        """Adds placeholder text if field is empty on focus out."""
         if not textbox.get("1.0", "end-1c").strip():
             textbox.insert("1.0", placeholder_text)
             textbox.configure(text_color=placeholder_color)
 
-
-    # --- submit_all_documents now checks for placeholder text ---
+    # --- submit_all_documents --- (Keep the same)
     def submit_all_documents():
         doc_name = selected_info.get("document_name")
         if not doc_name: return
 
         expected_files = []
-        expected_texts = {}  # Store as dict to hold placeholder
+        expected_texts = {} 
 
         for item in requirements_data[doc_name]["content"]:
             if len(item) == 3:
@@ -614,7 +635,7 @@ def create_services_page(parent_frame):
             if req_type == "file":
                 expected_files.append(subtitle)
             elif req_type == "text":
-                expected_texts[subtitle] = text  # Key = name, Value = placeholder
+                expected_texts[subtitle] = text 
 
         # Check for missing files
         missing_files = [req for req in expected_files if req not in uploaded_files]
@@ -632,7 +653,6 @@ def create_services_page(parent_frame):
             if textbox_widget:
                 text_content = textbox_widget.get("1.0", "end-1c").strip()
 
-                # Check if empty OR still has placeholder
                 if not text_content or text_content == placeholder:
                     missing_texts.append(req_name)
                 else:
@@ -653,7 +673,7 @@ def create_services_page(parent_frame):
             show_info_popup("Error", "Unable to identify user. Please log in again.")
             return
 
-        # Collect both ID paths
+        # Collect file paths
         valid_id_path = uploaded_files.get("Valid ID")
         second_valid_id_path = uploaded_files.get("2nd Valid ID")
         prof_of_payment_path = uploaded_files.get("Proof of Payment")
@@ -663,7 +683,6 @@ def create_services_page(parent_frame):
         if insert_document_request(user_id, doc_name, valid_id_path, second_valid_id_path, dti_path, prof_of_payment_path, purpose_text):
             show_info_popup("Submission Successful",
                             f"Your request for '{doc_name}' has been submitted and is pending approval.")
-            # Reset form after submission
             display_requirements(doc_name)
         else:
             show_info_popup("Error", "Failed to submit request. Please try again.")
@@ -695,7 +714,7 @@ def create_services_page(parent_frame):
             status_label.configure(text=f"Uploaded: {filename}", text_color="green")
 
 
-    # --- display_requirements now adds border and placeholder ---
+    # --- display_requirements (UPDATED to handle "qr_code" type) ---
     def display_requirements(document_name):
         uploaded_files.clear()
         text_inputs.clear()
@@ -718,42 +737,104 @@ def create_services_page(parent_frame):
 
             title_frame = ctk.CTkFrame(requirements_frame, fg_color="transparent")
             title_frame.pack(fill="x", pady=(10, 2), anchor="w")
+            
+            # Skip the info icon for the main QR Code section, but keep the title
+            if req_type != "qr_code":
+                ctk.CTkLabel(title_frame, text=subtitle, font=ctk.CTkFont(size=14, weight="bold"), anchor="w").pack(
+                    side="left", anchor="w")
 
-            ctk.CTkLabel(title_frame, text=subtitle, font=ctk.CTkFont(size=14, weight="bold"), anchor="w").pack(
-                side="left", anchor="w")
+                info_icon = ctk.CTkLabel(
+                    title_frame,
+                    text=" ⓘ",
+                    font=ctk.CTkFont(size=14),
+                    text_color="#007BFF"
+                )
+                info_icon.pack(side="left", padx=5, anchor="w")
+                info_icon.bind("<Enter>", lambda event, icon=info_icon, t=text: show_tooltip(icon, t))
+                info_icon.bind("<Leave>", hide_tooltip)
+            
+            # --- NEW QR CODE RENDERING LOGIC ---
+            if req_type == "qr_code":
+                qr_frame = ctk.CTkFrame(requirements_frame, fg_color="#F0F0F0", corner_radius=10, 
+                                        border_width=1, border_color="#3498db")
+                
+                # CHANGE: Increased vertical padding (15 on top, 15 on bottom) 
+                # to make the box taller and fill the external gap.
+                qr_frame.pack(fill="x", padx=15, pady=(15, 15)) 
+                qr_frame.grid_columnconfigure(0, weight=1)
 
-            info_icon = ctk.CTkLabel(
-                title_frame,
-                text=" ⓘ",
-                font=ctk.CTkFont(size=14),
-                text_color="#007BFF"
-            )
-            info_icon.pack(side="left", padx=5, anchor="w")
-            info_icon.bind("<Enter>", lambda event, icon=info_icon, t=text: show_tooltip(icon, t))
-            info_icon.bind("<Leave>", hide_tooltip)
+                # 1. STRICTLY GCASH ONLY Warning
+                gcash_warning = ctk.CTkLabel(qr_frame, text="*** STRICTLY GCASH ONLY ***", 
+                                        font=ctk.CTkFont(size=14, weight="bold"), text_color="#E74C3C") 
+                gcash_warning.pack(padx=20, pady=(5, 5))
+                
+                # 2. QR Title
+                qr_title = ctk.CTkLabel(qr_frame, text="💳 Document Payment (₱50.00)", 
+                                        font=ctk.CTkFont(size=16, weight="bold"), text_color="black")
+                qr_title.pack(padx=20, pady=(0, 5))
 
-            if req_type == "file":
+                # 3. QR Description
+                qr_desc = ctk.CTkLabel(qr_frame, text=text, 
+                                    text_color="#666666", wraplength=450, justify="center")
+                qr_desc.pack(padx=20, pady=(0, 10))
+
+                # 4. QR Image
+                if qr_image_tk:
+                    qr_image_widget = ctk.CTkLabel(qr_frame, text="", image=qr_image_tk)
+                    qr_image_widget.pack(padx=20, pady=(0, 5))
+                else:
+                    qr_placeholder_label = ctk.CTkLabel(qr_frame, text="[QR Code Not Loaded]", 
+                                                        font=ctk.CTkFont(size=14, weight="bold"), text_color="red")
+                    qr_placeholder_label.pack(padx=20, pady=20)
+                
+                # 5. Screenshot Instruction
+                qr_instruction = ctk.CTkLabel(qr_frame, text="**REMEMBER TO SAVE A SCREENSHOT**\n\nThis will be uploaded in the 'Proof of Payment' section below.",
+                                              text_color="red", font=ctk.CTkFont(size=12, weight="bold"), justify="center")
+                qr_instruction.pack(padx=20, pady=(5, 15))
+                
+                # Add a separator below the QR block
+                ctk.CTkFrame(requirements_frame, height=1, fg_color="#E0E0E0").pack(fill="x", pady=(10, 0))
+
+            elif req_type == "file":
                 # --- FILE UPLOAD block ---
-                preview_label = ctk.CTkLabel(requirements_frame, text="No Preview", fg_color="#EAEAEA", width=100,
-                                             height=100, corner_radius=8, text_color="gray")
-                preview_label.pack(pady=(5, 5), padx=(15, 0), anchor="w")
+                file_widget_container = ctk.CTkFrame(requirements_frame, fg_color="transparent")
+                # Adjusted padding to minimize space with elements above/below (as per prior request)
+                file_widget_container.pack(fill="x", padx=(15, 0), pady=(5, 0)) 
+                
+                # Use grid inside the container for stable side-by-side layout
+                file_widget_container.grid_columnconfigure(1, weight=1) 
+                
+                # 1. Preview Label (The main placeholder that disappeared)
+                preview_label = ctk.CTkLabel(file_widget_container, 
+                                             text="No Preview", 
+                                             fg_color="#EAEAEA", 
+                                             width=100,
+                                             height=100, 
+                                             corner_radius=8, 
+                                             text_color="gray")
+                # Place in column 0, spanning 2 rows (for the button and status text)
+                preview_label.grid(row=0, column=0, rowspan=2, padx=(0, 15), sticky="nw") 
 
-                upload_frame = ctk.CTkFrame(requirements_frame, fg_color="transparent")
-                upload_frame.pack(fill="x", padx=(15, 0), pady=(5, 15))
-                file_status_label = ctk.CTkLabel(upload_frame, text="No file selected.", font=ctk.CTkFont(size=12),
+                # 2. Upload Button
+                upload_button = ctk.CTkButton(file_widget_container, text="Upload File", width=120)
+                upload_button.grid(row=0, column=1, sticky="w", pady=(0, 5))
+
+                # 3. File Status Label (Below the button)
+                file_status_label = ctk.CTkLabel(file_widget_container, 
+                                                 text="No file selected.", 
+                                                 font=ctk.CTkFont(size=12),
                                                  text_color="gray")
-                upload_button = ctk.CTkButton(upload_frame, text="Upload File", width=120)
+                upload_button.grid(row=0, column=1, sticky="w", pady=(5, 0))
+                file_status_label.grid(row=1, column=1, sticky="nw", padx=(0, 0))
 
+                # Configure the command to reference the created labels
                 upload_button.configure(
                     command=lambda s_lbl=file_status_label, p_lbl=preview_label, req_name=subtitle: handle_upload(s_lbl,
                                                                                                                    p_lbl,
                                                                                                                    req_name))
 
-                upload_button.pack(side="left", anchor="w")
-                file_status_label.pack(side="left", anchor="w", padx=10)
-
             elif req_type == "text":
-                #
+                # --- TEXT INPUT block ---
                 textbox = ctk.CTkTextbox(
                     requirements_frame,
                     height=80,
@@ -764,11 +845,9 @@ def create_services_page(parent_frame):
                 )
                 textbox.pack(fill="x", pady=(5, 15), padx=(15, 0))
 
-                # Add placeholder text and color
                 textbox.insert("1.0", text)
                 textbox.configure(text_color=placeholder_color)
 
-                # Bind focus events for placeholder logic
                 textbox.bind("<FocusIn>", lambda event, tb=textbox, ph=text: on_textbox_focus_in(event, tb, ph))
                 textbox.bind("<FocusOut>", lambda event, tb=textbox, ph=text: on_textbox_focus_out(event, tb, ph))
 
@@ -778,9 +857,10 @@ def create_services_page(parent_frame):
                       height=50, command=submit_all_documents).pack(fill="x", pady=(30, 10))
         scrollable_frame.update_idletasks()
         scrollable_frame._parent_canvas.yview_moveto(1.0)
-    # --- END OF MODIFIED FUNCTION ---
+    # --- END display_requirements ---
 
 
+    # --- Document Selection Logic (remains the same) ---
     def select_document(document_name, clicked_button):
         global current_username
         user_status = get_user_status_by_username(current_username)
@@ -794,6 +874,29 @@ def create_services_page(parent_frame):
         selected_info["document_name"] = document_name
         display_requirements(document_name)
 
+    # --- MAIN LAYOUT (Removed static QR container) ---
+
+    scrollable_frame = ctk.CTkScrollableFrame(parent_frame, fg_color="transparent")
+    scrollable_frame.pack(fill="both", expand=True, padx=40, pady=20)
+    
+    # 1. Title/Cost Note
+    title_frame = ctk.CTkFrame(scrollable_frame, fg_color="transparent")
+    title_frame.pack(fill="x", expand=True)
+
+    title_label = ctk.CTkLabel(title_frame, text="Request a Document (Click to Select)",
+                               font=ctk.CTkFont(size=24, weight="bold"), text_color="black")
+    title_label.pack(anchor="w", pady=(0, 5))
+    
+    # Keeping the general cost note, though the detailed payment is in the requirements
+    cost_label = ctk.CTkLabel(title_frame, text="Note: Each document request requires a **₱50.00 payment** (unless otherwise stated).",
+                              font=ctk.CTkFont(size=14), text_color="red")
+    cost_label.pack(anchor="w", pady=(0, 20)) 
+    
+    # 2. Main Document Selection Container
+    button_container_frame = ctk.CTkFrame(scrollable_frame, fg_color="transparent")
+    button_container_frame.pack(fill="x", expand=True, pady=(0, 20))
+    
+    # --- Populate Document Buttons ---
     documents = list(requirements_data.keys())
     for doc_name in documents:
         doc_button = ctk.CTkButton(button_container_frame, text=doc_name, fg_color=BTN_UNSELECTED_COLOR,
@@ -801,6 +904,16 @@ def create_services_page(parent_frame):
                                    height=40, anchor="w")
         doc_button.configure(command=lambda name=doc_name, btn=doc_button: select_document(name, btn))
         doc_button.pack(fill="x", pady=4)
+
+
+    # 3. Requirements Container (Dynamic)
+    requirements_frame = ctk.CTkFrame(scrollable_frame, fg_color="transparent")
+    requirements_frame.pack(fill="x", expand=True, pady=(20, 0))
+
+    # Initial selection (Barangay Clearance)
+    if documents:
+        first_button = button_container_frame.winfo_children()[0]
+        select_document(documents[0], first_button)
 
 def create_profile_page(parent_frame):
     """Creates the profile page with data display and additional info inputs for verification."""
